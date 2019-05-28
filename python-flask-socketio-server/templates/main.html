@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<head>
+  <!-- Latest compiled and minified CSS -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+  <!-- Optional theme -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+
+  <!-- Latest compiled and minified JavaScript -->
+  <script src="https://code.jquery.com/jquery-2.2.4.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+
+  <!-- according to flask-socketio tested with socketio 1.3 and 1.4 -->
+  <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.8/socket.io.min.js"></script>
+
+
+  <script type="text/javascript" charset="utf-8">
+   $(document).ready(function() {
+     var socket = io.connect('http://' + document.domain + ':' + location.port);
+     var ctx = document.getElementById('canvas').getContext('2d');
+     $("#coverart").attr("src", "{{ url_for('static', filename='default.png') }}" );
+
+     socket.on('connect', function() {
+       socket.emit('myevent', {data: 'connected!'});
+     });
+     socket.on('playing_title', function(msg) {
+	   var nDate = new Date();
+       let hours = nDate.getHours();
+       let minutes = nDate.getMinutes();
+       // padStart is ES6
+       let text_hours = (hours+'').padStart(2,'0');
+       let text_minutes = (minutes+'').padStart(2,'0');
+       $('#updatedInfo').text(text_hours + ':' + text_minutes).html();
+       $('#track').text(msg.data).html();
+     });
+     socket.on('playing_artist', function(msg) {
+       $('#artist').text(msg.data).html();
+     });
+     socket.on('playing_album', function(msg) {
+       $('#album').text(msg.data).html();
+     });
+     socket.on('cover_art', function(msg) {
+       if (false) {
+         var img = new Image();
+         img.src = "data:" + msg.mimetype + ";base64," + msg.data;
+         img.onload = function () {
+           ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+         }
+         console.log(msg['data']);
+         console.log(msg.mimetype);
+       } else {
+         $("#coverart").attr("src","data:" + msg.mimetype + ";base64," + msg.data);
+       }
+     });
+   });
+  </script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <title>Now Playing</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="utf-8" />
+
+</head>
+
+<body>
+  <div id="trackinfo">
+    <canvas id="canvas"></canvas>
+    <div id="coverart-container">
+      <img id="coverart" class="shadow" src="" />
+    </div>
+    <div id="artist">Artist</div>
+    <div id="album">Album</div>
+    <div id="track">Song Title</div>
+    <div id="updateinfo">Song info updated <span id="updatedInfo"></span></div>
+  </div>
+</body>
+</html>

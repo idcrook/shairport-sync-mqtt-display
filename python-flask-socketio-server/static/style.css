@@ -1,0 +1,50 @@
+﻿/* adapted from https://github.com/idubnori/shairport-sync-trackinfo-reader/blob/develop/examples/WebViewer/wwwroot/StyleSheet.css */
+
+html {
+    height: 100%;
+    margin: 0;
+}
+
+body {
+    height: 100%;
+    margin: 0;
+    font-family: sans-serif;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.shadow {
+    display: inline-block;
+    box-shadow: 0 5px 10px -5px rgba(0, 0, 0, 0.8);
+}
+
+#trackinfo {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+#coverart {
+    height: 256px;
+}
+
+#artist {
+    font-weight: 400;
+}
+
+#album {
+    color: gray;
+    line-height: 0.9;
+}
+
+#track {
+    font-weight: 700;
+}
+
+#updateinfo {
+    color: lightgray;
+    line-height: 1.4;
+}

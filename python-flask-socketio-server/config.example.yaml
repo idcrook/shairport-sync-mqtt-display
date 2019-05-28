@@ -1,0 +1,28 @@
+---
+mqtt:
+  topic: 'shairport-sync/name'
+  host: raspberrypi  # this should be a resolvable hostname
+  port: 1883
+  use_tls: false
+  tls:
+    ca_certs_path: null
+    certfile_path: null
+    keyfile_path: null
+web_server:
+  host: '0.0.0.0'
+  port: 8080
+  debug: true
+# ---
+# mqtt:
+#   topic: 'shairport-sync/name'
+#   host: rpih1  # this should be a resolvable hostname
+#   port: 8883
+#   use_tls: true
+#   tls:
+#     ca_certs_path: /path/to/ca_certs  # can be chained.pem or directory
+#     certfile_path: client_certificate.crt
+#     keyfile_path: key.pem
+# web_server:
+#   host: '0.0.0.0'
+#   port: 8080
+#   debug: true
