@@ -20,16 +20,27 @@
      var ctx = document.getElementById('canvas').getContext('2d');
      $("#coverart").attr("src", "{{ url_for('static', filename='default.png') }}" );
 
+     // functionality for ES6 String.padLeft
+     // found at https://stackoverflow.com/a/24398129
+     function pad(pad, str, padLeft) {
+       if (typeof str === 'undefined')
+         return pad;
+       if (padLeft) {
+         return (pad + str).slice(-pad.length);
+       } else {
+         return (str + pad).substring(0, pad.length);
+       }
+     }
+
      socket.on('connect', function() {
        socket.emit('myevent', {data: 'connected!'});
      });
      socket.on('playing_title', function(msg) {
 	   var nDate = new Date();
-       let hours = nDate.getHours();
-       let minutes = nDate.getMinutes();
-       // padStart is ES6
-       let text_hours = (hours+'').padStart(2,'0');
-       let text_minutes = (minutes+'').padStart(2,'0');
+       var hours = nDate.getHours();
+       var minutes = nDate.getMinutes();
+       var text_hours = pad('00', hours, true);
+       var text_minutes = pad('00', minutes, true);
        $('#updatedInfo').text(text_hours + ':' + text_minutes).html();
        $('#track').text(msg.data).html();
      });
