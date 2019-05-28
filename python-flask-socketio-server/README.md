@@ -5,9 +5,10 @@
 install
 =======
 
-on computer where you want to run python webserver
+on computer where you want to run python webserver (in a git clone of this repo)
 
 ```bash
+cd python-flask-socketio-server
 python3 -m venv env
 source env/bin/activate
 pip install flask
