@@ -63,19 +63,22 @@
    });
   </script>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name = "viewport" content = "width = device-width, initial-scale = 1.0, user-scalable = yes">
   <meta charset="utf-8" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="format-detection" content="telephone=no">
   <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
   <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
   <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon-32x32.png') }}">
   <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
   <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
+
   <title>Now Playing</title>
 </head>
 
 <body>
   <div id="trackinfo">
-    <canvas id="canvas"></canvas>
     <div id="coverart-container">
       <img id="coverart" class="shadow" src="" />
     </div>
@@ -83,6 +86,7 @@
     <div id="album">Album</div>
     <div id="track">Song Title</div>
     <div id="updateinfo">Song info updated <span id="updatedInfo"></span></div>
+    <canvas id="canvas"></canvas>
   </div>
 </body>
 </html>
