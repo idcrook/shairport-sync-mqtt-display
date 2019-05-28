@@ -6,11 +6,12 @@
 #     python3 app.py
 
 import base64
-from yaml import safe_load
+import os
 import ssl
+from yaml import safe_load
 
 import paho.mqtt.client as mqtt
-from flask import Flask, render_template
+from flask import Flask, render_template, send_from_directory
 from flask_socketio import SocketIO
 
 app = Flask(__name__)
@@ -113,6 +114,13 @@ def main():
     return render_template('main.html',
                            async_mode=socketio.async_mode,
                            **templateData)
+
+
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory(os.path.join(app.root_path, 'static'),
+                               'favicon.ico',
+                               mimetype='image/vnd.microsoft.icon')
 
 
 # using this event from browser client to re-send now playing info on a page reload, e.g.
