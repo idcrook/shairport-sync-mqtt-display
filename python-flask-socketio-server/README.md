@@ -54,11 +54,7 @@ See no reason that webserver itself couldn't run on a Raspberry Pi, just haven't
 future ideas
 ============
 
-1.	Add websockets support
-	-	should be simple matter of adding `eventlet` lib?
-2.	Add support or example for displaying to character LCD display
-3.	Add playback controls?
-4.	add smarter player state observation / display
+Moved to [issues](https://github.com/idcrook/shairport-sync-mqtt-display/issues)
 
 inspired by
 ===========
