@@ -6,38 +6,74 @@
   <!-- Optional theme -->
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
 
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css" integrity="sha384-oS3vJWv+0UjzBfQzYUhtDYW+Pj2yciDJxpsK1OYPAYjqT085Qq/1cq5FLXAZQ7Ay" crossorigin="anonymous">
+
   <!-- Latest compiled and minified JavaScript -->
   <script src="https://code.jquery.com/jquery-2.2.4.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 
+
   <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"></script>
   <script type="text/javascript" charset="utf-8">
+
+   // functionality for ES6 String.padLeft
+   // found at https://stackoverflow.com/a/24398129
+   function pad(pad, str, padLeft) {
+     if (typeof str === 'undefined')
+       return pad;
+     if (padLeft) {
+       return (pad + str).slice(-pad.length);
+     } else {
+       return (str + pad).substring(0, pad.length);
+     }
+   }
+
+   var state = 'stop';
+
+   function buttonBackPress() {
+     console.log("button back invoked.");
+   }
+
+   function buttonForwardPress() {
+     console.log("button forward invoked.");
+   }
+
+   function buttonPlayPress() {
+     if(state=='stop'){
+       state='play';
+       //var button = d3.select("#button_play").classed('btn-success', true);
+       //button.select("i").attr('class', "glyphicon glyphicon-pause");
+     }
+     else if(state=='play' || state=='resume'){
+       state = 'pause';
+       //d3.select("#button_play i").attr('class', "glyphicon glyphicon-play");
+     }
+     else if(state=='pause'){
+       state = 'resume';
+       //d3.select("#button_play i").attr('class', "glyphicon glyphicon-pause");
+     }
+     console.log("button play pressed, play was "+state);
+   }
+
+   function buttonStopPress(){
+     state = 'stop';
+     //var button = d3.select("#button_play").classed('btn-success', false);
+     //button.select("i").attr('class', "glyphicon glyphicon-play");
+     console.log("button stop invoked.");
+   }
+
    $(document).ready(function() {
      var socket = io.connect('http://' + document.domain + ':' + location.port);
      var ctx = document.getElementById('canvas').getContext('2d');
      $("#coverart").attr("src", "{{ url_for('static', filename='default.png') }}" );
-
-     // functionality for ES6 String.padLeft
-     // found at https://stackoverflow.com/a/24398129
-     function pad(pad, str, padLeft) {
-       if (typeof str === 'undefined')
-         return pad;
-       if (padLeft) {
-         return (pad + str).slice(-pad.length);
-       } else {
-         return (str + pad).substring(0, pad.length);
-       }
-     }
 
      socket.on('connect', function() {
        socket.emit('myevent', {data: 'connected!'});
      });
      socket.on('playing_title', function(msg) {
 	   var nDate = new Date();
-       var hours = nDate.getHours();
-       var minutes = nDate.getMinutes();
-       var text_hours = pad('00', hours, true);
-       var text_minutes = pad('00', minutes, true);
+       var hours = nDate.getHours(); var minutes = nDate.getMinutes();
+       var text_hours = pad('00', hours, true); var text_minutes = pad('00', minutes, true);
        $('#updatedInfo').text(text_hours + ':' + text_minutes).html();
        $('#track').text(msg.data).html();
      });
@@ -60,6 +96,7 @@
          $("#coverart").attr("src","data:" + msg.mimetype + ";base64," + msg.data);
        }
      });
+
    });
   </script>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
@@ -73,7 +110,6 @@
   <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon-32x32.png') }}">
   <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
   <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
-
   <title>Now Playing</title>
 </head>
 
@@ -86,6 +122,22 @@
     <div id="album">Album</div>
     <div id="track">Song Title</div>
     <div id="updateinfo">Song info updated <span id="updatedInfo"></span></div>
+    <hr/>
+    <div class="player text-center">
+      <button type="button" id="button_bw" class="btn" onclick='buttonBackPress()'>
+        <span class="glyphicon glyphicon-backward"></span>
+      </button>
+      <button type="button" id="button_play" class="btn" onclick='buttonPlayPress()'>
+        <span class="glyphicon glyphicon-play"></span>
+      </button>
+      <button type="button" id="button_stop" class="btn" onclick='buttonStopPress()'>
+        <span class="glyphicon glyphicon-stop"></span>
+      </button>
+      <button type="button" id="button_fw" class="btn" onclick='buttonForwardPress()'>
+        <span class="glyphicon glyphicon-forward"></span>
+      </button>
+    </div>
+    <div class="player text-center">
     <canvas id="canvas"></canvas>
   </div>
 </body>
