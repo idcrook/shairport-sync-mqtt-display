@@ -26,6 +26,21 @@
      }
    }
 
+   function change_playpause_button_glyph(changeto) {
+     var $el = $('#button_playpause');
+     if (changeto !== undefined) {
+       console.log(changeto);
+       if (changeto == 'play') {
+         $el.find('span.glyphicon').removeClass('glyphicon-pause').addClass('glyphicon-play');
+       }
+       else if (changeto == 'pause') {
+         $el.find('span.glyphicon').removeClass('glyphicon-play').addClass('glyphicon-pause');
+       }
+     } else {
+       $el.find('span.glyphicon').toggleClass('glyphicon-play glyphicon-pause');
+     }
+   }
+
    $(document).ready(function() {
      var socket = io.connect('http://' + document.domain + ':' + location.port);
      var ctx = document.getElementById('canvas').getContext('2d');
@@ -61,28 +76,24 @@
      });
      $('#button_playpause').on('click', function (e) {
        if (playstate=='stop') {
+         $('#button_stop').removeClass('btn-primary').addClass('btn-default');
          playstate='play';
-         // TODO: highlight button
-         // TODO: change glyph to pause
-       }
-       else if (playstate=='stop' || playstate=='resume') {
-         playstate = 'pause';
-         // TODO: change glyph to play
-       }
-       else if (playstate=='pause') {
-         playstate = 'resume';
-         // TODO: change glyph to pause
+         change_playpause_button_glyph('pause');
        }
        else if (playstate=='play') {
          playstate = 'pause';
-         // TODO: change glyph to pause
+         change_playpause_button_glyph();
        }
-
+       else if (playstate=='pause') {
+         playstate = 'play';
+         change_playpause_button_glyph('pause');
+       }
        console.log("button playpause pressed, playstate is "+playstate);
      });
      $('#button_stop').on('click', function (e) {
        playstate='stop';
-       // TODO: highlight button
+       $(this).removeClass('btn-default').addClass('btn-primary');
+       change_playpause_button_glyph('play');
        console.log("button stop invoked.");
      });
 
@@ -113,21 +124,21 @@
     <div id="updateinfo">Song info updated <span id="updatedInfo"></span></div>
     <hr/>
     <div class="player text-center">
-        <button type="button" id="button_bw" class="btn btn-lg">
-          <span class="glyphicon glyphicon-backward"></span>
-        </button>
-        <button type="button" id="button_playpause" class="btn btn-lg">
-          <span class="glyphicon glyphicon-play"></span>
-        </button>
-        <button type="button" id="button_stop" class="btn btn-lg">
-          <span class="glyphicon glyphicon-stop"></span>
-        </button>
-        <button type="button" id="button_fw" class="btn btn-lg">
-          <span class="glyphicon glyphicon-forward"></span>
-        </button>
+      <button type="button" id="button_bw" class="btn btn-lg btn-default">
+        <span class="glyphicon glyphicon-backward"></span>
+      </button>
+      <button type="button" id="button_playpause" class="btn btn-lg btn-default">
+        <span class="glyphicon glyphicon-pause"></span>
+      </button>
+      <button type="button" id="button_stop" class="btn btn-lg btn-default">
+        <span class="glyphicon glyphicon-stop"></span>
+      </button>
+      <button type="button" id="button_fw" class="btn btn-lg btn-default">
+        <span class="glyphicon glyphicon-forward"></span>
+      </button>
     </div>
     <div class="player text-center">
-    <canvas id="canvas"></canvas>
-  </div>
+      <canvas id="canvas"></canvas>
+    </div>
 </body>
 </html>
