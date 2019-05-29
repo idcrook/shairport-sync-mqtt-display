@@ -1,7 +1,7 @@
 shairport-sync-mqtt-display
 ===========================
 
-Utilities for displaying [`shairport-sync`](https://github.com/mikebrady/shairport-sync)-provided metadata (via MQTT[^1])
+Utilities for displaying [`shairport-sync`](https://github.com/mikebrady/shairport-sync) metadata provided via MQTT<sup id="a1">[1](#f1)</sup>
 
 Real-time webapp
 ----------------
@@ -16,4 +16,4 @@ Real-time webapp
 	-	Support for mobile browsers.
 	-	***WIP***: Playback controls
 
-[^1]: MQTT metadata support released in `shairport-sync` [Version 3.3](https://github.com/mikebrady/shairport-sync/releases/tag/3.3)
+<i id="f1">1</i>: MQTT metadata support released in `shairport-sync` [Version 3.3](https://github.com/mikebrady/shairport-sync/releases/tag/3.3)[⤸](#a1)
