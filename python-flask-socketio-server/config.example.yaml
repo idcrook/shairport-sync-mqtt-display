@@ -1,8 +1,10 @@
 ---
 mqtt:
-  topic: 'shairport-sync/name'
-  host: raspberrypi  # this should be a resolvable hostname
+  topic: '/topic/in/shairport-sync'
+  host: rpi  # ideally this is a resolvable hostname (including /etc/host entry)
   port: 1883
+  username: null
+  password: null
   use_tls: false
   tls:
     ca_certs_path: null
@@ -33,6 +35,7 @@ webui:
 #     ca_certs_path: /path/to/ca_certs  # can be chained.pem or directory
 #     certfile_path: client_certificate.crt
 #     keyfile_path: key.pem
+#     # only for debugging # allow_insecure_server_certificate: false
 # web_server:
 #   host: '0.0.0.0'
 #   port: 8080
