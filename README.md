@@ -16,4 +16,6 @@ Real-time webapp
 	-	Support for mobile browsers.
 	-	***WIP***: Playback controls
 
+---
+
 <i id="f1">1</i>: MQTT metadata support released in `shairport-sync` [Version 3.3](https://github.com/mikebrady/shairport-sync/releases/tag/3.3)[⤸](#a1)
