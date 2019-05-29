@@ -1,15 +1,19 @@
 shairport-sync-mqtt-display
 ===========================
 
-Some utilities related to displaying [`shairport-sync`](https://github.com/mikebrady/shairport-sync) MQTT metadata . MQTT metadata support released in `shairport-sync` [Version 3.3](https://github.com/mikebrady/shairport-sync/releases/tag/3.3)
+Utilities for displaying [`shairport-sync`](https://github.com/mikebrady/shairport-sync)-provided metadata (via MQTT[^1])
 
-python-flask-socketio-server
-----------------------------
+Real-time webapp
+----------------
 
-Display live updates in a webpage : [python-flask-socketio-server](python-flask-socketio-server)
-
--	Tiny python webserver app that connects to MQTT broker and shows track info
-	-	real-time updates using socket.io
--	Support for mobile browsers.
+[python-flask-socketio-server](python-flask-socketio-server) in this repo
 
 ![iOS screenshot](python-flask-socketio-server/screenshot1.png)
+
+-	Python-based (Flask) webserver app
+	-	Connects to MQTT broker and shows track info
+	-	Real-time updates using socket.io
+	-	Support for mobile browsers.
+	-	***WIP***: Playback controls
+
+[^1]: MQTT metadata support released in `shairport-sync` [Version 3.3](https://github.com/mikebrady/shairport-sync/releases/tag/3.3)
