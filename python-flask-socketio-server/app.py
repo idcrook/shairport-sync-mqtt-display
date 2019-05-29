@@ -14,16 +14,14 @@ import paho.mqtt.client as mqtt
 from flask import Flask, render_template, send_from_directory
 from flask_socketio import SocketIO
 
-app = Flask(__name__)
-socketio = SocketIO(app)
-
 # app will die if config file is missing
 config_file = "config.yaml"
 with open(config_file) as f:
     config = safe_load(f)
 
-# subtree of the config file
+# subtrees of the config file
 MQTT_CONF = config['mqtt']
+WEBSERVER_CONF = config['web_server']
 TOPIC_ROOT = MQTT_CONF['topic']
 print(TOPIC_ROOT)
 
@@ -31,6 +29,10 @@ print(TOPIC_ROOT)
 templateData = {}
 # this variable will keep the most recent track info pieces sent to socketio
 SAVED_INFO = {}
+
+app = Flask(__name__)
+app.config['SECRET_KEY'] = WEBSERVER_CONF.get('secret_key', 'secret!')
+socketio = SocketIO(app)
 
 
 def _guessImageMime(magic):
@@ -90,13 +92,13 @@ mqttc.on_connect = on_connect
 mqttc.on_message = on_message
 
 if MQTT_CONF.get('use_tls'):
-    TLS_CONF = MQTT_CONF.get('tls')
-    print("Using TLS config", TLS_CONF)
+    tls_conf = MQTT_CONF.get('tls')
+    print("Using TLS config", tls_conf)
     # assumes full valid TLS configuration for paho lib
-    if TLS_CONF:
-        mqttc.tls_set(ca_certs=TLS_CONF['ca_certs_path'],
-                      certfile=TLS_CONF['certfile_path'],
-                      keyfile=TLS_CONF['keyfile_path'],
+    if tls_conf:
+        mqttc.tls_set(ca_certs=tls_conf['ca_certs_path'],
+                      certfile=tls_conf['certfile_path'],
+                      keyfile=tls_conf['keyfile_path'],
                       cert_reqs=ssl.CERT_REQUIRED,
                       tls_version=ssl.PROTOCOL_TLSv1_2,
                       ciphers=None)
@@ -110,7 +112,6 @@ mqttc.loop_start()
 
 @app.route("/")
 def main():
-    # Pass the template data into the template main.html and return it to the user
     return render_template('main.html',
                            async_mode=socketio.async_mode,
                            **templateData)
@@ -135,7 +136,6 @@ def handle_my_custom_event(json):
 
 # launch the Flask (socketio) webserver!
 if __name__ == "__main__":
-    WEBSERVER_CONF = config['web_server']
     web_host = WEBSERVER_CONF['host']
     web_port = WEBSERVER_CONF['port']
     web_debug = WEBSERVER_CONF['debug']
