@@ -2,121 +2,135 @@
 {% block title %}{% endblock %}
 {% block head %}
   {{ super() }}
-  <script type="text/javascript" charset="utf-8">
+<script type="text/javascript" charset="utf-8">
 
-   // functionality for ES6 String.padLeft
-   // found at https://stackoverflow.com/a/24398129
-   function pad(pad, str, padLeft) {
-     if (typeof str === 'undefined')
-       return pad;
-     if (padLeft) {
-       return (pad + str).slice(-pad.length);
-     } else {
-       return (str + pad).substring(0, pad.length);
-     }
+ // functionality for ES6 String.padLeft
+ // found at https://stackoverflow.com/a/24398129
+ function pad(pad, str, padLeft) {
+   if (typeof str === 'undefined')
+     return pad;
+   if (padLeft) {
+     return (pad + str).slice(-pad.length);
+   } else {
+     return (str + pad).substring(0, pad.length);
    }
+ }
 
-   function change_playpause_button_glyph(changeto) {
-     var $el = $('#button_playpause');
-     if (changeto !== undefined) {
-       console.log(changeto);
-       if (changeto == 'play') {
-         $el.find('span.glyphicon').removeClass('glyphicon-pause').addClass('glyphicon-play');
-       }
-       else if (changeto == 'pause') {
-         $el.find('span.glyphicon').removeClass('glyphicon-play').addClass('glyphicon-pause');
-       }
-     } else {
-       $el.find('span.glyphicon').toggleClass('glyphicon-play glyphicon-pause');
+ function change_playpause_button_glyph(changeto) {
+   var $el = $('#button_playpause');
+   if (changeto !== undefined) {
+     console.log(changeto);
+     if (changeto == 'play') {
+       $el.find('span.glyphicon').removeClass('glyphicon-pause').addClass('glyphicon-play');
      }
+     else if (changeto == 'pause') {
+       $el.find('span.glyphicon').removeClass('glyphicon-play').addClass('glyphicon-pause');
+     }
+   } else {
+     $el.find('span.glyphicon').toggleClass('glyphicon-play glyphicon-pause');
    }
+ }
 
-   $(document).ready(function() {
-     var socket = io.connect('http://' + document.domain + ':' + location.port);
-     var ctx = document.getElementById('canvas').getContext('2d');
-     var playstate = 'play';
+ $(document).ready(function() {
+   var socket = io.connect('http://' + document.domain + ':' + location.port);
+   {% if showCanvas %}
+   var ctx = document.getElementById('canvas').getContext('2d');
+   {% endif %}
+   var playstate = 'play';
 
-     $("#coverart").attr("src", "{{ url_for('static', filename='default.png') }}" );
+   $("#coverart").attr("src", "{{ url_for('static', filename='default.png') }}" );
 
-     socket.on('connect', function() {
-       socket.emit('myevent', {data: 'connected!'});
-     });
-     socket.on('playing_title', function(msg) {
-	   var nDate = new Date();
-       var hours = nDate.getHours(); var minutes = nDate.getMinutes();
-       var text_hours = pad('00', hours, true); var text_minutes = pad('00', minutes, true);
-       $('#updatedInfo').text(text_hours + ':' + text_minutes).html();
-       $('#track').text(msg.data).html();
-     });
-     socket.on('playing_artist', function(msg) {
-       $('#artist').text(msg.data).html();
-     });
-     socket.on('playing_album', function(msg) {
-       $('#album').text(msg.data).html();
-     });
-     socket.on('cover_art', function(msg) {
-       $("#coverart").attr("src","data:" + msg.mimetype + ";base64," + msg.data);
-     });
-
-     $('#button_bw').on('click', function (e) {
-       console.log("button back invoked.");
-     });
-     $('#button_fw').on('click', function (e) {
-       console.log("button forward invoked.");
-     });
-     $('#button_playpause').on('click', function (e) {
-       if (playstate=='stop') {
-         $('#button_stop').removeClass('btn-primary').addClass('btn-default');
-         playstate='play';
-         change_playpause_button_glyph('pause');
-       }
-       else if (playstate=='play') {
-         playstate = 'pause';
-         change_playpause_button_glyph();
-       }
-       else if (playstate=='pause') {
-         playstate = 'play';
-         change_playpause_button_glyph('pause');
-       }
-       console.log("button playpause pressed, playstate is "+playstate);
-     });
-     $('#button_stop').on('click', function (e) {
-       playstate='stop';
-       $(this).removeClass('btn-default').addClass('btn-primary');
-       change_playpause_button_glyph('play');
-       console.log("button stop invoked.");
-     });
-
+   socket.on('connect', function() {
+     socket.emit('myevent', {data: 'connected!'});
    });
-  </script>
+   socket.on('playing_title', function(msg) {
+	 var nDate = new Date();
+     var hours = nDate.getHours(); var minutes = nDate.getMinutes();
+     var text_hours = pad('00', hours, true); var text_minutes = pad('00', minutes, true);
+     $('#updatedInfo').text(text_hours + ':' + text_minutes).html();
+     $('#track').text(msg.data).html();
+   });
+   socket.on('playing_artist', function(msg) {
+     $('#artist').text(msg.data).html();
+   });
+   socket.on('playing_album', function(msg) {
+     $('#album').text(msg.data).html();
+   });
+   socket.on('playing_genre', function(msg) {
+     $('#genre').text(msg.data).html();
+   });
+   socket.on('cover_art', function(msg) {
+     $("#coverart").attr("src","data:" + msg.mimetype + ";base64," + msg.data);
+   });
+
+   // button handlers
+   $('#button_bw').on('click', function (e) {
+     console.log("button back invoked.");
+   });
+   $('#button_fw').on('click', function (e) {
+     console.log("button forward invoked.");
+   });
+   $('#button_playpause').on('click', function (e) {
+     if (playstate=='stop') {
+       $('#button_stop').removeClass('btn-primary').addClass('btn-default');
+       playstate='play';
+       change_playpause_button_glyph('pause');
+     }
+     else if (playstate=='play') {
+       playstate = 'pause';
+       change_playpause_button_glyph();
+     }
+     else if (playstate=='pause') {
+       playstate = 'play';
+       change_playpause_button_glyph('pause');
+     }
+     console.log("button playpause pressed, playstate is "+playstate);
+   });
+   $('#button_stop').on('click', function (e) {
+     playstate='stop';
+     $(this).removeClass('btn-default').addClass('btn-primary');
+     change_playpause_button_glyph('play');
+     console.log("button stop invoked.");
+   });
+
+ });
+</script>
 
 {% endblock %}
 
 {% block content %}
-  <div id="trackinfo">
-    <div id="coverart-container">
-      <img id="coverart" class="shadow" src="" />
-    </div>
-    <div id="artist">Artist</div>
-    <div id="album">Album</div>
-    <div id="track">Song Title</div>
-    <div id="updateinfo">Song info updated <span id="updatedInfo"></span></div>
-    <hr/>
-    <div class="player text-center">
-      <button type="button" id="button_bw" class="btn btn-lg btn-default">
-        <span class="glyphicon glyphicon-backward"></span>
-      </button>
-      <button type="button" id="button_playpause" class="btn btn-lg btn-default">
-        <span class="glyphicon glyphicon-pause"></span>
-      </button>
-      <button type="button" id="button_stop" class="btn btn-lg btn-default">
-        <span class="glyphicon glyphicon-stop"></span>
-      </button>
-      <button type="button" id="button_fw" class="btn btn-lg btn-default">
-        <span class="glyphicon glyphicon-forward"></span>
-      </button>
-    </div>
-    <div class="player text-center">
-      <canvas id="canvas"></canvas>
-    </div>
+<div id="trackinfo">
+  {% if showCoverArt %}
+  <div id="coverart-container">
+    <img id="coverart" class="shadow" src="" />
+  </div>
+  {% endif %}
+
+  {% if showArtist %} <div id="artist">Artist</div>     {% endif %}
+  {% if showAlbum  %} <div id="album">Album</div>       {% endif %}
+  {% if showTitle  %} <div id="track">Song Title</div>  {% endif %}
+  {% if showGenre  %} <div id="genre">Genre</div>       {% endif %}
+
+  {% if showUpdateInfo %} <div id="updateinfo">Song info updated <span id="updatedInfo"></span></div>  {% endif %}
+
+  <hr/>
+  {% if showPlayer %}
+  <div class="player text-center">
+    <button type="button" id="button_bw" class="btn btn-lg btn-default">
+      <span class="glyphicon glyphicon-backward"></span>
+    </button>
+    <button type="button" id="button_playpause" class="btn btn-lg btn-default">
+      <span class="glyphicon glyphicon-pause"></span>
+    </button>
+    <button type="button" id="button_stop" class="btn btn-lg btn-default">
+      <span class="glyphicon glyphicon-stop"></span>
+    </button>
+    <button type="button" id="button_fw" class="btn btn-lg btn-default">
+      <span class="glyphicon glyphicon-forward"></span>
+    </button>
+  </div>
+  {% endif %}
+  {% if showCanvas %}
+  <canvas id="canvas"></canvas>
+  {% endif %}
 {% endblock %}

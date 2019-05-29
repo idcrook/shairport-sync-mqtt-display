@@ -49,6 +49,10 @@ body {
     font-weight: 700;
 }
 
+#genre {
+    color: gray;
+}
+
 #updateinfo {
     color: lightgray;
     line-height: 1.4;
