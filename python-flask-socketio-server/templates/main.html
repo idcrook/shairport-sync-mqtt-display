@@ -28,43 +28,11 @@
      }
    }
 
-   var state = 'stop';
-
-   function buttonBackPress() {
-     console.log("button back invoked.");
-   }
-
-   function buttonForwardPress() {
-     console.log("button forward invoked.");
-   }
-
-   function buttonPlayPress() {
-     if(state=='stop'){
-       state='play';
-       //var button = d3.select("#button_play").classed('btn-success', true);
-       //button.select("i").attr('class', "glyphicon glyphicon-pause");
-     }
-     else if(state=='play' || state=='resume'){
-       state = 'pause';
-       //d3.select("#button_play i").attr('class', "glyphicon glyphicon-play");
-     }
-     else if(state=='pause'){
-       state = 'resume';
-       //d3.select("#button_play i").attr('class', "glyphicon glyphicon-pause");
-     }
-     console.log("button play pressed, play was "+state);
-   }
-
-   function buttonStopPress(){
-     state = 'stop';
-     //var button = d3.select("#button_play").classed('btn-success', false);
-     //button.select("i").attr('class', "glyphicon glyphicon-play");
-     console.log("button stop invoked.");
-   }
-
    $(document).ready(function() {
      var socket = io.connect('http://' + document.domain + ':' + location.port);
      var ctx = document.getElementById('canvas').getContext('2d');
+     var playstate = 'play';
+
      $("#coverart").attr("src", "{{ url_for('static', filename='default.png') }}" );
 
      socket.on('connect', function() {
@@ -84,17 +52,40 @@
        $('#album').text(msg.data).html();
      });
      socket.on('cover_art', function(msg) {
-       if (false) {
-         var img = new Image();
-         img.src = "data:" + msg.mimetype + ";base64," + msg.data;
-         img.onload = function () {
-           ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-         }
-         console.log(msg['data']);
-         console.log(msg.mimetype);
-       } else {
-         $("#coverart").attr("src","data:" + msg.mimetype + ";base64," + msg.data);
+       $("#coverart").attr("src","data:" + msg.mimetype + ";base64," + msg.data);
+     });
+
+     $('#button_bw').on('click', function (e) {
+       console.log("button back invoked.");
+     });
+     $('#button_fw').on('click', function (e) {
+       console.log("button forward invoked.");
+     });
+     $('#button_playpause').on('click', function (e) {
+       if (playstate=='stop') {
+         playstate='play';
+         // TODO: highlight button
+         // TODO: change glyph to pause
        }
+       else if (playstate=='stop' || playstate=='resume') {
+         playstate = 'pause';
+         // TODO: change glyph to play
+       }
+       else if (playstate=='pause') {
+         playstate = 'resume';
+         // TODO: change glyph to pause
+       }
+       else if (playstate=='play') {
+         playstate = 'pause';
+         // TODO: change glyph to pause
+       }
+
+       console.log("button playpause pressed, playstate is "+playstate);
+     });
+     $('#button_stop').on('click', function (e) {
+       playstate='stop';
+       // TODO: highlight button
+       console.log("button stop invoked.");
      });
 
    });
@@ -124,16 +115,16 @@
     <div id="updateinfo">Song info updated <span id="updatedInfo"></span></div>
     <hr/>
     <div class="player text-center">
-        <button type="button" id="button_bw" class="btn btn-lg" onclick='buttonBackPress()'>
+        <button type="button" id="button_bw" class="btn btn-lg">
           <span class="glyphicon glyphicon-backward"></span>
         </button>
-        <button type="button" id="button_play" class="btn btn-lg" onclick='buttonPlayPress()'>
+        <button type="button" id="button_playpause" class="btn btn-lg">
           <span class="glyphicon glyphicon-play"></span>
         </button>
-        <button type="button" id="button_stop" class="btn btn-lg" onclick='buttonStopPress()'>
+        <button type="button" id="button_stop" class="btn btn-lg">
           <span class="glyphicon glyphicon-stop"></span>
         </button>
-        <button type="button" id="button_fw" class="btn btn-lg" onclick='buttonForwardPress()'>
+        <button type="button" id="button_fw" class="btn btn-lg">
           <span class="glyphicon glyphicon-forward"></span>
         </button>
     </div>
