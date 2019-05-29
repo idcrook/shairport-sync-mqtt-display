@@ -13,6 +13,16 @@ web_server:
   port: 8080
   debug: true
   secret_key: 'secrets!'
+webui:
+  show_player: false
+  show_artwork: true
+  show_track_metadata: true
+  track_metadata:
+    - artist
+    - album
+    - title
+    - genre
+  show_update_info: true
 # ---
 # mqtt:
 #   topic: 'shairport-sync/name'

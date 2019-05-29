@@ -1,92 +1,136 @@
-<!DOCTYPE html>
-<head>
-  <!-- Latest compiled and minified CSS -->
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+{% extends "layout.html" %}
+{% block title %}{% endblock %}
+{% block head %}
+  {{ super() }}
+<script type="text/javascript" charset="utf-8">
 
-  <!-- Optional theme -->
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+ // functionality for ES6 String.padLeft
+ // found at https://stackoverflow.com/a/24398129
+ function pad(pad, str, padLeft) {
+   if (typeof str === 'undefined')
+     return pad;
+   if (padLeft) {
+     return (pad + str).slice(-pad.length);
+   } else {
+     return (str + pad).substring(0, pad.length);
+   }
+ }
 
-  <!-- Latest compiled and minified JavaScript -->
-  <script src="https://code.jquery.com/jquery-2.2.4.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
-  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
-
-  <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"></script>
-  <script type="text/javascript" charset="utf-8">
-   $(document).ready(function() {
-     var socket = io.connect('http://' + document.domain + ':' + location.port);
-     var ctx = document.getElementById('canvas').getContext('2d');
-     $("#coverart").attr("src", "{{ url_for('static', filename='default.png') }}" );
-
-     // functionality for ES6 String.padLeft
-     // found at https://stackoverflow.com/a/24398129
-     function pad(pad, str, padLeft) {
-       if (typeof str === 'undefined')
-         return pad;
-       if (padLeft) {
-         return (pad + str).slice(-pad.length);
-       } else {
-         return (str + pad).substring(0, pad.length);
-       }
+ function change_playpause_button_glyph(changeto) {
+   var $el = $('#button_playpause');
+   if (changeto !== undefined) {
+     console.log(changeto);
+     if (changeto == 'play') {
+       $el.find('span.glyphicon').removeClass('glyphicon-pause').addClass('glyphicon-play');
      }
+     else if (changeto == 'pause') {
+       $el.find('span.glyphicon').removeClass('glyphicon-play').addClass('glyphicon-pause');
+     }
+   } else {
+     $el.find('span.glyphicon').toggleClass('glyphicon-play glyphicon-pause');
+   }
+ }
 
-     socket.on('connect', function() {
-       socket.emit('myevent', {data: 'connected!'});
-     });
-     socket.on('playing_title', function(msg) {
-	   var nDate = new Date();
-       var hours = nDate.getHours();
-       var minutes = nDate.getMinutes();
-       var text_hours = pad('00', hours, true);
-       var text_minutes = pad('00', minutes, true);
-       $('#updatedInfo').text(text_hours + ':' + text_minutes).html();
-       $('#track').text(msg.data).html();
-     });
-     socket.on('playing_artist', function(msg) {
-       $('#artist').text(msg.data).html();
-     });
-     socket.on('playing_album', function(msg) {
-       $('#album').text(msg.data).html();
-     });
-     socket.on('cover_art', function(msg) {
-       if (false) {
-         var img = new Image();
-         img.src = "data:" + msg.mimetype + ";base64," + msg.data;
-         img.onload = function () {
-           ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-         }
-         console.log(msg['data']);
-         console.log(msg.mimetype);
-       } else {
-         $("#coverart").attr("src","data:" + msg.mimetype + ";base64," + msg.data);
-       }
-     });
+ $(document).ready(function() {
+   var socket = io.connect('http://' + document.domain + ':' + location.port);
+   {% if showCanvas %}
+   var ctx = document.getElementById('canvas').getContext('2d');
+   {% endif %}
+   var playstate = 'play';
+
+   $("#coverart").attr("src", "{{ url_for('static', filename='default.png') }}" );
+
+   socket.on('connect', function() {
+     socket.emit('myevent', {data: 'connected!'});
    });
-  </script>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-  <meta name = "viewport" content = "width = device-width, height = device-width, initial-scale = 1.0, user-scalable = yes">
-  <meta charset="utf-8" />
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="format-detection" content="telephone=no">
-  <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
-  <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
-  <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon-32x32.png') }}">
-  <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
-  <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
+   socket.on('playing_title', function(msg) {
+	 var nDate = new Date();
+     var hours = nDate.getHours(); var minutes = nDate.getMinutes();
+     var text_hours = pad('00', hours, true); var text_minutes = pad('00', minutes, true);
+     $('#updatedInfo').text(text_hours + ':' + text_minutes).html();
+     $('#track').text(msg.data).html();
+   });
+   socket.on('playing_artist', function(msg) {
+     $('#artist').text(msg.data).html();
+   });
+   socket.on('playing_album', function(msg) {
+     $('#album').text(msg.data).html();
+   });
+   socket.on('playing_genre', function(msg) {
+     $('#genre').text(msg.data).html();
+   });
+   socket.on('cover_art', function(msg) {
+     $("#coverart").attr("src","data:" + msg.mimetype + ";base64," + msg.data);
+   });
 
-  <title>Now Playing</title>
-</head>
+   // button handlers
+   $('#button_bw').on('click', function (e) {
+     console.log("button back invoked.");
+   });
+   $('#button_fw').on('click', function (e) {
+     console.log("button forward invoked.");
+   });
+   $('#button_playpause').on('click', function (e) {
+     if (playstate=='stop') {
+       $('#button_stop').removeClass('btn-primary').addClass('btn-default');
+       playstate='play';
+       change_playpause_button_glyph('pause');
+     }
+     else if (playstate=='play') {
+       playstate = 'pause';
+       change_playpause_button_glyph();
+     }
+     else if (playstate=='pause') {
+       playstate = 'play';
+       change_playpause_button_glyph('pause');
+     }
+     console.log("button playpause pressed, playstate is "+playstate);
+   });
+   $('#button_stop').on('click', function (e) {
+     playstate='stop';
+     $(this).removeClass('btn-default').addClass('btn-primary');
+     change_playpause_button_glyph('play');
+     console.log("button stop invoked.");
+   });
 
-<body>
-  <div id="trackinfo">
-    <div id="coverart-container">
-      <img id="coverart" class="shadow" src="" />
-    </div>
-    <div id="artist">Artist</div>
-    <div id="album">Album</div>
-    <div id="track">Song Title</div>
-    <div id="updateinfo">Song info updated <span id="updatedInfo"></span></div>
-    <canvas id="canvas"></canvas>
+ });
+</script>
+
+{% endblock %}
+
+{% block content %}
+<div id="trackinfo">
+  {% if showCoverArt %}
+  <div id="coverart-container">
+    <img id="coverart" class="shadow" src="" />
   </div>
-</body>
-</html>
+  {% endif %}
+
+  {% if showArtist %} <div id="artist">Artist</div>     {% endif %}
+  {% if showAlbum  %} <div id="album">Album</div>       {% endif %}
+  {% if showTitle  %} <div id="track">Song Title</div>  {% endif %}
+  {% if showGenre  %} <div id="genre">Genre</div>       {% endif %}
+
+  {% if showUpdateInfo %} <div id="updateinfo">Song info updated <span id="updatedInfo"></span></div>  {% endif %}
+
+  <hr/>
+  {% if showPlayer %}
+  <div class="player text-center">
+    <button type="button" id="button_bw" class="btn btn-lg btn-default">
+      <span class="glyphicon glyphicon-backward"></span>
+    </button>
+    <button type="button" id="button_playpause" class="btn btn-lg btn-default">
+      <span class="glyphicon glyphicon-pause"></span>
+    </button>
+    <button type="button" id="button_stop" class="btn btn-lg btn-default">
+      <span class="glyphicon glyphicon-stop"></span>
+    </button>
+    <button type="button" id="button_fw" class="btn btn-lg btn-default">
+      <span class="glyphicon glyphicon-forward"></span>
+    </button>
+  </div>
+  {% endif %}
+  {% if showCanvas %}
+  <canvas id="canvas"></canvas>
+  {% endif %}
+{% endblock %}

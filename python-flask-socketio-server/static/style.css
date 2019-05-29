@@ -20,6 +20,11 @@ body {
     box-shadow: 0 5px 10px -5px rgba(0, 0, 0, 0.8);
 }
 
+.player{
+  margin: 10px 0;
+}
+
+
 #trackinfo {
     display: flex;
     flex-direction: column;
@@ -42,6 +47,10 @@ body {
 
 #track {
     font-weight: 700;
+}
+
+#genre {
+    color: gray;
 }
 
 #updateinfo {

@@ -14,19 +14,21 @@ import paho.mqtt.client as mqtt
 from flask import Flask, render_template, send_from_directory
 from flask_socketio import SocketIO
 
-# app will die if config file is missing
+# App will die if config file is missing. Only read on startup, so if it is
+# edited, app must be relaunched to see changes
 config_file = "config.yaml"
 with open(config_file) as f:
     config = safe_load(f)
 
 # subtrees of the config file
-MQTT_CONF = config['mqtt']
-WEBSERVER_CONF = config['web_server']
+MQTT_CONF = config['mqtt']  # required section
+WEBSERVER_CONF = config['web_server']  # required section
+WEBUI_CONF = config.get('webui', {})  # if missing, assume defaults
+
+# "base" topic - shairport-sync.conf {mqtt.topic}
 TOPIC_ROOT = MQTT_CONF['topic']
 print(TOPIC_ROOT)
 
-# (Unused) for webpage
-templateData = {}
 # this variable will keep the most recent track info pieces sent to socketio
 SAVED_INFO = {}
 
@@ -46,13 +48,48 @@ def _guessImageMime(magic):
         return "image/jpg"
 
 
+known_track_metadata_types = {
+    'artist': 'showArtist',
+    'album': 'showAlbum',
+    'title': 'showTitle',
+    'genre': 'showGenre'
+}
+
+
+def populateTemplateData(config):
+    """Use values from config file to form templateData for HTML template."""
+    templateData = {}
+    if config.get('show_player', False):  # default : False
+        templateData['showPlayer'] = True
+
+    if config.get('show_canvas', False):  # default : False
+        templateData['showCanvas'] = True
+
+    if config.get('show_update_info', True):  # default : True
+        templateData['showUpdateInfo'] = True
+
+    if config.get('show_artwork', True):  # default : True
+        templateData['showCoverArt'] = True
+
+    if config.get('show_track_metadata', True):  # default : True
+        metadata_types = config.get(
+            'track_metadata',
+            ['artist', 'album', 'title'])  # defaults to these three
+        for metadata_type in metadata_types:
+            print(metadata_type)
+            if metadata_type in known_track_metadata_types:
+                templateData[known_track_metadata_types[metadata_type]] = True
+
+    return templateData
+
+
 # The callback for when MQTT client receives a CONNACK response from the server.
 def on_connect(client, userdata, flags, rc):
     print("Connected with result code {}".format(rc))
 
     # adding subscriptions in on_connect() means that if we will still be
     # subscribed if there lost/reconnect connection to the MQTT server
-    for subtopic in ('cover', 'artist', 'album', 'title'):
+    for subtopic in ('cover', 'artist', 'album', 'title', 'genre'):
         sub = TOPIC_ROOT + "/" + subtopic
         print("Subscribing to topic", sub)
         # QoS==0 should be fine
@@ -72,6 +109,11 @@ def on_message(client, userdata, message):
         msg = {'data': message.payload.decode('utf8')}
         SAVED_INFO['playing_album'] = msg
         socketio.emit('playing_album', msg)
+    if message.topic == TOPIC_ROOT + "/" + "genre":
+        print("genre update")
+        msg = {'data': message.payload.decode('utf8')}
+        SAVED_INFO['playing_genre'] = msg
+        socketio.emit('playing_genre', msg)
     if message.topic == TOPIC_ROOT + "/" + "title":
         print("title update")
         msg = {'data': message.payload.decode('utf8')}
@@ -108,6 +150,8 @@ mqtt_port = MQTT_CONF['port']
 print("Connecting to broker", mqtt_host, 'port', mqtt_port)
 mqttc.connect(mqtt_host, port=mqtt_port, keepalive=60)
 mqttc.loop_start()
+
+templateData = populateTemplateData(WEBUI_CONF)
 
 
 @app.route("/")
