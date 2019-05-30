@@ -1,4 +1,4 @@
-`python-flask-socketio-server` is a [Flask](http://flask.pocoo.org) webapp which uses [MQTT](https://www.eclipse.org/paho/clients/python/) and [socket.io](https://github.com/miguelgrinberg/Flask-SocketIO) to serve [`shairport-sync`](https://github.com/mikebrady/shairport-sync)-provided metadata. It has remote-control support and works great with Apple Music®<sup id=\"a1\">[1](#f1)</sup>
+`python-flask-socketio-server` is a [Flask](http://flask.pocoo.org) webapp which uses [MQTT](https://www.eclipse.org/paho/clients/python/) and [socket.io](https://github.com/miguelgrinberg/Flask-SocketIO) to serve [`shairport-sync`](https://github.com/mikebrady/shairport-sync)-provided metadata. It has remote-control support and works great with Apple Music®<sup id="a1">[1](#f1)</sup>
 
 If you use [`shairport-sync`](https://github.com/mikebrady/shairport-sync), you should be able to get this webapp working.
 
