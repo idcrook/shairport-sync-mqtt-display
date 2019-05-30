@@ -1,7 +1,7 @@
 {% extends "layout.html" %}
 {% block title %}{% endblock %}
 {% block head %}
-  {{ super() }}
+{{ super() }}
 <script type="text/javascript" charset="utf-8">
 
  // functionality for ES6 String.padLeft
@@ -19,7 +19,7 @@
  function change_playpause_button_glyph(changeto) {
    var $el = $('#button_playpause');
    if (changeto !== undefined) {
-     console.log(changeto);
+     console.log('change button to ' + changeto);
      if (changeto == 'play') {
        $el.find('span.glyphicon').removeClass('glyphicon-pause').addClass('glyphicon-play');
      }
@@ -43,20 +43,6 @@
    socket.on('connect', function() {
      socket.emit('myevent', {data: 'connected!'});
    });
-
-   socket.on('play_end', function(msg) {
-     console.log(msg)
-   });
-   socket.on('play_start', function(msg) {
-     console.log(msg)
-   });
-   socket.on('play_flush', function(msg) {
-     console.log(msg)
-   });
-   socket.on('play_resume', function(msg) {
-     console.log(msg)
-   });
-
 
    // handle playing track info fields
    socket.on('playing_title', function(msg) {
@@ -110,6 +96,30 @@
      change_playpause_button_glyph('play');
      console.log("button stop invoked.");
    });
+
+   socket.on('play_flush', function(msg) {
+     console.log(msg)
+     playstate='stop';
+     change_playpause_button_glyph('play');
+   });
+   socket.on('play_end', function(msg) {
+     console.log(msg)
+     playstate='stop';
+     change_playpause_button_glyph('play');
+   });
+   socket.on('play_start', function(msg) {
+     console.log(msg)
+     playstate='play';
+     change_playpause_button_glyph('pause');
+   });
+   socket.on('play_resume', function(msg) {
+     console.log(msg)
+     playstate='play';
+     change_playpause_button_glyph('pause');
+   });
+
+
+
 
  });
 </script>
