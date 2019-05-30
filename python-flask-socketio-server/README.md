@@ -141,4 +141,4 @@ Original development setup:
 
 ---
 
-<i id="f1">1</i>: Trademarks are the respective protperty own their owners.[⤸](#a1)
+<i id="f1">1</i>: Trademarks are the respective property of their owners.[⤸](#a1)
