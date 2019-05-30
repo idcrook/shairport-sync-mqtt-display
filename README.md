@@ -1,20 +1,14 @@
-shairport-sync-mqtt-display
-===========================
-
-Utilities for displaying [`shairport-sync`](https://github.com/mikebrady/shairport-sync) metadata provided via MQTT<sup id="a1">[1](#f1)</sup>
+Utilities for [`shairport-sync`](https://github.com/mikebrady/shairport-sync) metadata provided via MQTT<sup id="a1">[1](#f1)</sup>
 
 Real-time webapp
 ----------------
 
-[python-flask-socketio-server](python-flask-socketio-server) in this repo
+![Screenshot](python-flask-socketio-server/screenshot1.png)
 
-![iOS screenshot](python-flask-socketio-server/screenshot1.png)
-
--	Python-based (Flask) webserver app
+-	Webserver app - [python-flask-socketio-server](python-flask-socketio-server) in this repo
+	-	Real-time updates. Displays track info
 	-	Playback controls right in your browser
-	-	Shows track info
-	-	Real-time updates
-	-	Support for mobile browsers
+	-	Configurable UI and support for mobile browsers
 
 ---
 

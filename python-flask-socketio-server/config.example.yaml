@@ -1,6 +1,6 @@
 ---
 mqtt:
-  topic: '/topic/in/shairport-sync'
+  topic: 'topic/in/shairport-sync'  # there should NOT be a leading slash!
   host: raspi  # ideally this is a resolvable hostname (e.g. /etc/host entry)
   port: 1883
   username: null
