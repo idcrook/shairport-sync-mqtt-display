@@ -51,6 +51,11 @@ My development setup:
 
 See no reason that webserver itself couldn't run on a Raspberry Pi, just haven't tested that.
 
+architecture - how it works
+===========================
+
+TODO: Give a high-level overview of components and how they interact
+
 future ideas
 ============
 
