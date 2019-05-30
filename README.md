@@ -1,20 +1,21 @@
-shairport-sync-mqtt-display
-===========================
+[![GitHub license](https://img.shields.io/github/license/idcrook/shairport-sync-mqtt-display.svg)](https://github.com/idcrook/shairport-sync-mqtt-display/blob/master/LICENSE)
 
-Utilities for displaying [`shairport-sync`](https://github.com/mikebrady/shairport-sync) metadata provided via MQTT<sup id="a1">[1](#f1)</sup>
+Utilities for [`shairport-sync`](https://github.com/mikebrady/shairport-sync) metadata provided via MQTT<sup id="a1">[1](#f1)</sup>
 
 Real-time webapp
 ----------------
 
-[python-flask-socketio-server](python-flask-socketio-server) in this repo
+![Screenshot](python-flask-socketio-server/screenshot1.png)
 
-![iOS screenshot](python-flask-socketio-server/screenshot1.png)
+Webserver app - [python-flask-socketio-server](python-flask-socketio-server/) in this repo
 
--	Python-based (Flask) webserver app
-	-	Playback controls right in your browser
-	-	Shows track info
-	-	Real-time updates
-	-	Support for mobile browsers
+-	Real-time updates. Displays track info
+-	Playback controls right in your browser
+-	Configurable UI. Support for mobile browsers and as a webapp.
+
+#### License
+
+The code and documentation is Copyright © 2019 David Crook under the [MIT License](LICENSE).
 
 ---
 
