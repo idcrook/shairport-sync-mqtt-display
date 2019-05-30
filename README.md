@@ -11,10 +11,10 @@ Real-time webapp
 ![iOS screenshot](python-flask-socketio-server/screenshot1.png)
 
 -	Python-based (Flask) webserver app
-	-	Connects to MQTT broker and shows track info
-	-	Real-time updates using socket.io
-	-	Support for mobile browsers.
-	-	***WIP***: Playback controls
+	-	Playback controls right in your browser
+	-	Shows track info
+	-	Real-time updates
+	-	Support for mobile browsers
 
 ---
 
