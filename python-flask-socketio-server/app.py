@@ -6,18 +6,21 @@
 #     python3 app.py
 
 import base64
+from pathlib import Path
 import os
 import ssl
-from yaml import safe_load
 
 import paho.mqtt.client as mqtt
 from flask import Flask, render_template, send_from_directory
 from flask_socketio import SocketIO
+from yaml import safe_load
 
-# App will die if config file is missing. Only read on startup, so if it is
-# edited, app must be relaunched to see changes
-config_file = "config.yaml"
-with open(config_file) as f:
+# App will die here if config file is missing.
+# Read only on startup. If edited, app must be relaunched to see changes
+mypath = Path().absolute()
+config_file = mypath / "config.yaml"
+print("Using config file {}".format(config_file))
+with config_file.open() as f:
     config = safe_load(f)
 
 # subtrees of the config file
