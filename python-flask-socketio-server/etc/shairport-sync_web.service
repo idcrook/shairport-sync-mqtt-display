@@ -1,0 +1,28 @@
+# cd /home/pi/projects/shairport-sync-mqtt-display/python-flask-socketio-server/etc
+# sudo cp shairport-sync_web.service  /lib/systemd/system/shairport-sync_web@.service
+# sudo chmod 644 /lib/systemd/system/shairport-sync_web@.service
+# sudo systemctl daemon-reload
+# sudo systemctl enable shairport-sync_web@pi.service
+# sudo systemctl status shairport-sync_web@pi.service
+# sudo systemctl start  shairport-sync_web@pi.service
+# journalctl -u shairport-sync_web@pi.service
+
+[Unit]
+Description=Shairport-sync Metadata Webserver (screen session)
+After=network.target time-sync.target
+ConditionPathExists=/home/pi/projects/shairport-sync-mqtt-display/python-flask-socketio-server/etc
+
+[Service]
+Type=simple
+WorkingDirectory=/home/pi/projects/shairport-sync-mqtt-display/python-flask-socketio-server
+ExecStart=/home/pi/projects/shairport-sync-mqtt-display/python-flask-socketio-server/env/bin/python /home/pi/projects/shairport-sync-mqtt-display/python-flask-socketio-server/app.py
+TimeoutStopSec=5
+StandardOutput=journal+console
+StandardError=journal+console
+SuccessExitStatus=1 SIGKILL
+User=pi
+#StandardOutput=inherit
+#StandardError=inherit
+
+[Install]
+WantedBy=default.target
