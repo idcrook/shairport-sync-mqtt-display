@@ -1,7 +1,7 @@
 ---
 mqtt:
   topic: '/topic/in/shairport-sync'
-  host: rpi  # ideally this is a resolvable hostname (including /etc/host entry)
+  host: raspi  # ideally this is a resolvable hostname (e.g. /etc/host entry)
   port: 1883
   username: null
   password: null
@@ -16,14 +16,14 @@ web_server:
   debug: true
   secret_key: 'secrets!'
 webui:
-  show_player: false
+  show_player: true
   show_artwork: true
   show_track_metadata: true
   track_metadata:
     - artist
     - album
     - title
-    - genre
+    # - genre
   show_update_info: true
 # ---
 # mqtt:
