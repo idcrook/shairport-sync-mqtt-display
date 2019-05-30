@@ -296,7 +296,9 @@ def handle_pause(json):
 
 @socketio.on('remote_playpause')
 def handle_playpause(json):
-    pass
+    print('handle_playpause', str(json))
+    (topic, msg) = _generate_remote_command('playpause')
+    mqttc.publish(topic, msg)
 
 
 @socketio.on('remote_play')

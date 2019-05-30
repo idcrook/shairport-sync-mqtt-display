@@ -76,6 +76,7 @@
      console.log("button forward invoked.");
      socket.emit('remote_nextitem', {});
    });
+
    $('#button_playpause').on('click', function (e) {
      if (playstate=='stop') {
        //$('#button_stop').removeClass('btn-primary').addClass('btn-default');
@@ -87,10 +88,12 @@
      else if (playstate=='play') {
        playstate = 'pause';
        change_playpause_button_glyph();
+       socket.emit('remote_playpause', {});
      }
      else if (playstate=='pause') {
        playstate = 'play';
-       change_playpause_button_glyph('pause');
+       // this should get handled by play_resume event sent back // change_playpause_button_glyph('pause');
+       socket.emit('remote_playresume', {});
      }
      console.log("button playpause pressed, playstate is "+playstate);
    });
