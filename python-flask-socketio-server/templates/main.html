@@ -43,6 +43,22 @@
    socket.on('connect', function() {
      socket.emit('myevent', {data: 'connected!'});
    });
+
+   socket.on('play_end', function(msg) {
+     console.log(msg)
+   });
+   socket.on('play_start', function(msg) {
+     console.log(msg)
+   });
+   socket.on('play_flush', function(msg) {
+     console.log(msg)
+   });
+   socket.on('play_resume', function(msg) {
+     console.log(msg)
+   });
+
+
+   // handle playing track info fields
    socket.on('playing_title', function(msg) {
 	 var nDate = new Date();
      var hours = nDate.getHours(); var minutes = nDate.getMinutes();
@@ -59,9 +75,11 @@
    socket.on('playing_genre', function(msg) {
      $('#genre').text(msg.data).html();
    });
+
    socket.on('cover_art', function(msg) {
      $("#coverart").attr("src","data:" + msg.mimetype + ";base64," + msg.data);
    });
+
 
    // button handlers
    $('#button_bw').on('click', function (e) {

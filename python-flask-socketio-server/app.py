@@ -36,6 +36,13 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = WEBSERVER_CONF.get('secret_key', 'secret!')
 socketio = SocketIO(app)
 
+known_play_metadata_types = {
+    'play_end': 'play_end',
+    'play_start': 'play_start',
+    'play_flush': 'play_flush',
+    'play_resume': 'play_resume'
+}
+
 known_track_metadata_types = {
     'artist': 'showArtist',
     'album': 'showAlbum',
@@ -47,24 +54,23 @@ known_track_metadata_types = {
 def populateTemplateData(config):
     """Use values from config file to form templateData for HTML template."""
     templateData = {}
-    if config.get('show_player', False):  # default : False
+    if config.get('show_player', False):
         templateData['showPlayer'] = True
 
-    if config.get('show_canvas', False):  # default : False
+    if config.get('show_canvas', False):
         templateData['showCanvas'] = True
 
-    if config.get('show_update_info', True):  # default : True
+    if config.get('show_update_info', True):
         templateData['showUpdateInfo'] = True
 
-    if config.get('show_artwork', True):  # default : True
+    if config.get('show_artwork', True):
         templateData['showCoverArt'] = True
 
-    if config.get('show_track_metadata', True):  # default : True
+    if config.get('show_track_metadata', True):
         metadata_types = config.get(
             'track_metadata',
             ['artist', 'album', 'title'])  # defaults to these three
         for metadata_type in metadata_types:
-            print(metadata_type)
             if metadata_type in known_track_metadata_types:
                 templateData[known_track_metadata_types[metadata_type]] = True
 
@@ -78,15 +84,25 @@ def _form_subtopic_topic(subtopic):
 
 
 def on_connect(client, userdata, flags, rc):
-    """# For when MQTT client receives a CONNACK response from the server."""
+    """# For when MQTT client receives a CONNACK response from the server.
+
+    Adding subscriptions in on_connect() means that they'll be re-subscribed
+    for lost/re-connections to MQTT server.
+
+    """
 
     # print("Connected with result code {}".format(rc))
 
-    # adding subscriptions in on_connect() means that they'll be re-subscribed
-    # for lost/re-connection to MQTT server
-    for subtopic in ('cover', 'artist', 'album', 'title', 'genre'):
+    subtopic_list = list(known_track_metadata_types.keys())
+    subtopic_list.extend(list(known_play_metadata_types.keys()))
+
+    # if we are not showing cover art, do not subscribe to it
+    if (populateTemplateData(MQTT_CONF)).get('showCoverArt'):
+        subtopic_list.append('cover')
+
+    for subtopic in subtopic_list:
         topic = _form_subtopic_topic(subtopic)
-        print("Subscribing to topic", topic)
+        print("topic", topic, end=' ')
         (result, msg_id) = client.subscribe(topic, 0)  # QoS==0 should be fine
         print(msg_id)
 
@@ -103,15 +119,16 @@ def _guessImageMime(magic):
 
 
 def _send_and_store_playing_metadata(metadata_name, message):
-    """Forms message and sends to browser client using socket.io.
+    """Forms playing metadata message and sends to browser client using socket.io.
 
     Also saves a copy of sent message (into SAVED_INFO dict), which is used to
-    resend most recent message in case the browser page is refreshed, another
-    browser client connects, etc.
+    resend most-recent event messages in case the browser page is refreshed,
+    another browser client connects, etc.
 
     Applies a naming convention of prepending string 'playing_' to metadata
-    name in socketio sent message. Of course the same naming convention is used
-    on receiving client.
+    name in socketio sent event. Of course the same naming convention is used
+    on receiving client event.
+
     """
 
     # print("{} update".format(metadata_name))
@@ -119,6 +136,13 @@ def _send_and_store_playing_metadata(metadata_name, message):
     emitted_metadata_name = "playing_{}".format(metadata_name)
     SAVED_INFO[emitted_metadata_name] = msg
     socketio.emit(emitted_metadata_name, msg)
+
+
+def _send_play_event(metadata_name):
+    """Forms play event message and sends to browser client using socket.io."""
+
+    print("{}".format(metadata_name))
+    socketio.emit(metadata_name, metadata_name)
 
 
 def on_message(client, userdata, message):
@@ -136,6 +160,16 @@ def on_message(client, userdata, message):
         _send_and_store_playing_metadata("genre", message)
     if message.topic == _form_subtopic_topic("title"):
         _send_and_store_playing_metadata("title", message)
+
+    # Player state
+    if message.topic == _form_subtopic_topic("play_start"):
+        _send_play_event("play_start")
+    if message.topic == _form_subtopic_topic("play_end"):
+        _send_play_event("play_end")
+    if message.topic == _form_subtopic_topic("play_flush"):
+        _send_play_event("play_flush")
+    if message.topic == _form_subtopic_topic("play_resume"):
+        _send_play_event("play_resume")
 
     # cover art
     if message.topic == _form_subtopic_topic("cover"):
@@ -181,7 +215,7 @@ if MQTT_CONF.get('username'):
 mqtt_host = MQTT_CONF['host']
 mqtt_port = MQTT_CONF['port']
 print("Connecting to broker", mqtt_host, 'port', mqtt_port)
-mqttc.connect_async(mqtt_host, port=mqtt_port)
+mqttc.connect(mqtt_host, port=mqtt_port)
 mqttc.loop_start()
 
 templateData = populateTemplateData(WEBUI_CONF)
