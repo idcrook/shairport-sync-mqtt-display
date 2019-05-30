@@ -70,15 +70,19 @@
    // button handlers
    $('#button_bw').on('click', function (e) {
      console.log("button back invoked.");
+     socket.emit('remote_previtem', {});
    });
    $('#button_fw').on('click', function (e) {
      console.log("button forward invoked.");
+     socket.emit('remote_nextitem', {});
    });
    $('#button_playpause').on('click', function (e) {
      if (playstate=='stop') {
-       $('#button_stop').removeClass('btn-primary').addClass('btn-default');
+       //$('#button_stop').removeClass('btn-primary').addClass('btn-default');
+       socket.emit('remote_playresume', {});
        playstate='play';
        change_playpause_button_glyph('pause');
+
      }
      else if (playstate=='play') {
        playstate = 'pause';
@@ -91,15 +95,18 @@
      console.log("button playpause pressed, playstate is "+playstate);
    });
    $('#button_stop').on('click', function (e) {
+     if (playstate=='play') {
+       socket.emit('remote_pause', {});
+     }
      playstate='stop';
-     $(this).removeClass('btn-default').addClass('btn-primary');
      change_playpause_button_glyph('play');
      console.log("button stop invoked.");
    });
 
+   // these events come from shareport-sync
    socket.on('play_flush', function(msg) {
      console.log(msg)
-     playstate='stop';
+     // playstate='stop';
      change_playpause_button_glyph('play');
    });
    socket.on('play_end', function(msg) {
@@ -109,7 +116,7 @@
    });
    socket.on('play_start', function(msg) {
      console.log(msg)
-     playstate='play';
+     // playstate='play';
      change_playpause_button_glyph('pause');
    });
    socket.on('play_resume', function(msg) {

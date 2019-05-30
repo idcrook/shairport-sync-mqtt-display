@@ -83,6 +83,16 @@ def _form_subtopic_topic(subtopic):
     return topic
 
 
+def _generate_remote_command(command):
+    """Return remote topic and message, given command.
+
+    TODO: add checking on names?
+    """
+    topic = TOPIC_ROOT + "/remote"
+    msg = command
+    return topic, msg
+
+
 def on_connect(client, userdata, flags, rc):
     """# For when MQTT client receives a CONNACK response from the server.
 
@@ -253,6 +263,54 @@ def handle_my_custom_event(json):
         # print(key, msg)
         print(key, )
         socketio.emit(key, msg)
+
+
+@socketio.on('remote_previtem')
+def handle_previtem(json):
+    print('handle_previtem', str(json))
+    (topic, msg) = _generate_remote_command('previtem')
+    mqttc.publish(topic, msg)
+
+
+@socketio.on('remote_nextitem')
+def handle_nextitem(json):
+    print('handle_nextitem', str(json))
+    (topic, msg) = _generate_remote_command('nextitem')
+    mqttc.publish(topic, msg)
+
+
+# what 'stop' does is not desired; cannot be resumed
+@socketio.on('remote_stop')
+def handle_stop(json):
+    print('handle_stop', str(json))
+    (topic, msg) = _generate_remote_command('stop')
+    # mqttc.publish(topic, msg)
+
+
+@socketio.on('remote_pause')
+def handle_pause(json):
+    print('handle_pause', str(json))
+    (topic, msg) = _generate_remote_command('pause')
+    mqttc.publish(topic, msg)
+
+
+@socketio.on('remote_playpause')
+def handle_playpause(json):
+    pass
+
+
+@socketio.on('remote_play')
+def handle_play(json):
+    print('handle_play', str(json))
+    (topic, msg) = _generate_remote_command('play')
+    mqttc.publish(topic, msg)
+
+
+@socketio.on('remote_playresume')
+def handle_playresume(json):
+    print('handle_playresume', str(json))
+    (topic, msg) = _generate_remote_command('playresume')
+    mqttc.publish(topic, msg)
 
 
 # launch the Flask (+socketio) webserver!
