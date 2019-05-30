@@ -1,3 +1,4 @@
+# # -*- systemd -*-
 # cd /home/pi/projects/shairport-sync-mqtt-display/python-flask-socketio-server/etc
 # sudo cp shairport-sync_web.service  /lib/systemd/system/shairport-sync_web@.service
 # sudo chmod 644 /lib/systemd/system/shairport-sync_web@.service
