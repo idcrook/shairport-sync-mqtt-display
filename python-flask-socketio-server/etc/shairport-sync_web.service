@@ -10,7 +10,8 @@
 
 [Unit]
 Description=Shairport-sync Metadata Webserver (screen session)
-After=network.target time-sync.target
+After=network.target time-sync.target mosquitto.service
+# After=network.target time-sync.target
 ConditionPathExists=/home/pi/projects/shairport-sync-mqtt-display/python-flask-socketio-server/etc
 
 [Service]
