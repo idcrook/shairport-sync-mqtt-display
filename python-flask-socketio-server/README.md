@@ -89,6 +89,12 @@ python app.py
 
 Use IP address to connect from [other devices on your network](#connecting-across-home-network)
 
+#### Automatically start on boot
+
+There's a `systemd` service file at `python-flask-socketio-server/etc/shairport-sync_web.service`
+
+It included instruction that can be used to install the python webserver as a system service.
+
 troubleshooting
 ---------------
 
