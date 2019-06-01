@@ -16,26 +16,29 @@ First, some requirements
 3.	*MQTT broker*
 	-	An MQTT broker, like `mosquitto`, visible on same network. See [wiki - Configure MQTT broker](https://github.com/idcrook/shairport-sync-mqtt-display/wiki/Configure-mosquitto-MQTT-broker)
 4.	*Webserver*
-	-	A computer with Python™3 that can run this webserver app (tested on macOS™)
+	-	Any computer that can run this Python 3-based webserver app (tested on macOS™ and Raspbian)
 
 2., 3., and 4. can all be on the same computer, for example, a Raspberry Pi®
 
-For our purposes, we are assuming a Raspberry Pi running Raspbian `stretch`. And the rest of this "quickstart" depends on the requirements 1.) 2.) and 3.) being met.
-
-See [wiki](https://github.com/idcrook/shairport-sync-mqtt-display/wiki) for additional pointers.
+Oh, and of course, any number of browser "clients", to display the served webpage.
 
 let's go
 --------
 
+For our purposes, we are assuming a Raspberry Pi running Raspbian `stretch`. And the rest of this "quickstart" depends on the above requirements 1.) 2.) and 3.) being met, with 2.) and 3.) being on the same Raspberry Pi where we are installing the webserver app (4.).
+
+See [wiki](https://github.com/idcrook/shairport-sync-mqtt-display/wiki) for additional pointers.
+
 ```bash
 # Install a python3 dev setup and other libraries
 sudo apt install -y python3-dev python3-pip python3-venv \
-python3-setuptools python3-wheel git mosquitto-clients
+    python3-setuptools python3-wheel git mosquitto-clients
 
-# test MQTT broker access, from two different bash sessions
+# test MQTT broker access. so, from two different bash sessions:
 # .. mosquitto_sub ...
 # .. mosquitto_pub ...
 
+# grab a copy of this repo
 git clone https://github.com/idcrook/shairport-sync-mqtt-display.git
 cd shairport-sync-mqtt-display
 # now proceed to the next section: "install"
@@ -44,7 +47,7 @@ cd shairport-sync-mqtt-display
 install
 =======
 
-on computer where you want to run python webserver (in a git clone of this repo)
+on computer where you want to run the python 3 webserver (from within a git clone of this repo)
 
 ```bash
 cd python-flask-socketio-server
@@ -65,12 +68,12 @@ cp config.example.yaml config.secrets.yaml
 $EDITOR config.secrets.yaml # $EDITOR would be nano, vi, etc.
 ```
 
-1.	Configure the MQTT section (`mqtt:`) to match your setup.
+1.	Configure the MQTT section (`mqtt:`) to reflect your environment.
 
 	-	For the `topic`, I use something like `shairport-sync/SSHOSTNAME`
+		-	this `topic` needs to match the `mqtt.topic` string in your `/etc/shairport-sync.conf` file
 		-	`SSHOSTNAME` is the name of where `shairport-sync` is running
 		-	Note, there is **no** leading slash ('`/`') in the `topic` string
-		-	`topic` needs to match the `mqtt.topic` string in your `/etc/shairport-sync.conf` file
 	-	Use the same mqtt broker for `host` that you did in your MQTT broker config testing and `shairport-sync.conf`
 
 2.	Customize the webpage UI section (`webui:`) if desired.
@@ -91,9 +94,9 @@ Use IP address to connect from [other devices on your network](#connecting-acros
 
 #### Automatically start on boot
 
-There's a `systemd` service file at `python-flask-socketio-server/etc/shairport-sync_web.service`
+There's a `systemd` service file at `python-flask-socketio-server/etc/shairport-sync_web.service` in this git repository.
 
-It included instruction that can be used to install the python webserver as a system service.
+It includes instructions in its header that can be used to install the python webserver as a system service.
 
 troubleshooting
 ---------------
