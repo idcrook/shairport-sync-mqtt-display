@@ -17,14 +17,9 @@ ConditionPathExists=/home/pi/projects/shairport-sync-mqtt-display/python-flask-s
 [Service]
 Type=simple
 WorkingDirectory=/home/pi/projects/shairport-sync-mqtt-display/python-flask-socketio-server
-ExecStart=/home/pi/projects/shairport-sync-mqtt-display/python-flask-socketio-server/env/bin/python /home/pi/projects/shairport-sync-mqtt-display/python-flask-socketio-server/app.py
-TimeoutStopSec=5
-StandardOutput=journal+console
-StandardError=journal+console
-SuccessExitStatus=1 SIGKILL
+ExecStart=/home/pi/projects/shairport-sync-mqtt-display/python-flask-socketio-server/env/bin/python \
+          /home/pi/projects/shairport-sync-mqtt-display/python-flask-socketio-server/app.py
 User=pi
-#StandardOutput=inherit
-#StandardError=inherit
 
 [Install]
 WantedBy=default.target

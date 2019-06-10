@@ -7,10 +7,10 @@ If you use [`shairport-sync`](https://github.com/mikebrady/shairport-sync), you 
 Quickstart
 ==========
 
-First, some requirements
+First, some requirements for your home network.
 
 1.	*AirPlay®*
-	-	iTunes® on a computer can use AirPlay®. The *Music* app in iOS™ works too
+	-	iTunes® on a computer. Music* app in iOS™. Rogue Amoeba's [Airfoil](https://rogueamoeba.com/airfoil/) app too (which works with Spotify, e.g.)
 2.	*`shairport-sync`* as AirPlay® receiver
 	-	`shairport-sync` needs to be built with *MQTT support*. See [wiki - Build shairport-sync](https://github.com/idcrook/shairport-sync-mqtt-display/wiki/Build-shairport-sync-with-MQTT-support)
 3.	*MQTT broker*
@@ -31,10 +31,10 @@ See [wiki](https://github.com/idcrook/shairport-sync-mqtt-display/wiki) for addi
 
 ```bash
 # Install a python3 dev setup and other libraries
-sudo apt install -y python3-dev python3-pip python3-venv \
-    python3-setuptools python3-wheel git mosquitto-clients
+sudo apt install -y python3-pip python3-venv \
+python3-setuptools python3-wheel git mosquitto-clients
 
-# test MQTT broker access. so, from two different bash sessions:
+# Validate MQTT broker config. E.g., from two different bash sessions:
 # .. mosquitto_sub ...
 # .. mosquitto_pub ...
 
@@ -47,7 +47,7 @@ cd shairport-sync-mqtt-display
 install
 =======
 
-on computer where you want to run the python 3 webserver (from within a git clone of this repo)
+Steps to run on computer for webserver (in a git clone of this repo). We rely on python3's built-in `venv` module for dependencies.
 
 ```bash
 cd python-flask-socketio-server
@@ -62,6 +62,8 @@ pip install pyyaml
 
 config
 ------
+
+Copy the example config file and customize.
 
 ```shell
 cp config.example.yaml config.secrets.yaml
@@ -81,7 +83,7 @@ $EDITOR config.secrets.yaml # $EDITOR would be nano, vi, etc.
 running
 =======
 
-Assumed music playing using AirPlay® (e.g. iTunes®), an MQTT broker, and `shairport-sync` with MQTT support, are already online. Also assumes that `config.yaml` has been configured to match your environment.
+Assumed music playing using AirPlay® (e.g. iTunes®), an MQTT broker, and `shairport-sync` with MQTT support are already online. Also assumes that `config.yaml` has been configured to match your home network environment.
 
 ```bash
 # this is the python virtual environment we installed into
@@ -90,13 +92,13 @@ python app.py
 # open it in your web browser, e.g.: open http://0.0.0.0:8080
 ```
 
-Use IP address to connect from [other devices on your network](#connecting-across-home-network)
+Use IP address (in place of `0.0.0.0`) to connect from [other devices on your network](#connecting-across-home-network)
 
 #### Automatically start on boot
 
 There's a `systemd` service file at `python-flask-socketio-server/etc/shairport-sync_web.service` in this git repository.
 
-It includes instructions in its header that can be used to install the python webserver as a system service.
+It includes instructions in its header that can be used to install the python webserver as a system service., so it will run automatically at boot-up.
 
 troubleshooting
 ---------------
@@ -132,21 +134,21 @@ inspired by
 ===========
 
 -	MQTT metadata support released in [`shairport-sync` 3.3](https://github.com/mikebrady/shairport-sync/releases/tag/3.3)
--	many examples using the older metadata Unix pipe technique, including https://github.com/idubnori/shairport-sync-trackinfo-reader
+-	many projects using `shairport-sync`'s older metadata pipe technique, including https://github.com/idubnori/shairport-sync-trackinfo-reader for styling inspiration
 
 #### Development
 
 Original development setup:
 
--	iTunes® streaming to (multiple, simultaneous) Raspberry Pi (`shairport-sync`\)
+-	iTunes® streaming to Raspberry Pi(s)
 -	Raspberry Pi Model 3 B
 	-	running `mosquitto` MQTT broker
-	-	running `shairport-sync`, configured with MQTT to send cover artwork and parsed metadata
--	`app.py` running on macOS
-	-	connected to MQTT broker over home LAN
-	-	tested on python3.7 installed from Homebrew
-	-	Safari browser on macOS™, iOS™
--	`app.py` also tested on a Raspberry Pi running Raspbian `stretch`/`python3.5`
+	-	running `shairport-sync`, configured with MQTT to send [cover artwork and parsed metadata](https://github.com/idcrook/shairport-sync-mqtt-display/wiki/Build-shairport-sync-with-MQTT-support#salient-pieces-of-a-working-config-file)
+-	`app.py`
+	-	configured to connect to MQTT broker
+	-	developed in python3.7 installed from Homebrew on macOS Mojave
+	-	also tested on a Raspberry Pi running Raspbian `stretch`/`python3.5`
+-	Client app in Safari browser on macOS™, Mobile Safari on iOS™ 9 and iOS™ 12. Chrome.
 
 ---
 
