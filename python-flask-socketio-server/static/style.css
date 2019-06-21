@@ -20,6 +20,8 @@ body {
     box-shadow: 0 5px 10px -5px rgba(0, 0, 0, 0.8);
 }
 
+
+
 .player{
   margin: 10px 0;
 }
@@ -56,4 +58,37 @@ body {
 #updateinfo {
     color: lightgray;
     line-height: 1.4;
+}
+
+/* TODO: To use it in JS, window.matchMedia('(prefers-color-scheme: dark)')
+const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+*/
+
+/* "Dark mode" media query overrides */
+@media (prefers-color-scheme: dark) {
+  body {
+      background-color: #2F2F2F;
+  }
+
+  #artist {
+      color: mediumslateblue;
+      font-weight: 600;
+  }
+
+  #album {
+      color: slateblue;
+  }
+
+  #track {
+      color: lavender;
+  }
+
+  #genre {
+      color: rebeccapurple;
+  }
+
+  #updateinfo {
+      color: steelblue;
+  }
+
 }
