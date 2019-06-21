@@ -91,4 +91,11 @@ const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-schem
       color: steelblue;
   }
 
+  .shadow {
+      display: inline-block;
+      /* purplish drop shadow on album art */
+      box-shadow: 0 5px 10px -2px rgba(0, 0, 255, 0.3),  0 5px 10px -2px rgba(255, 0, 0, 0.3);
+  }
+
+
 }
