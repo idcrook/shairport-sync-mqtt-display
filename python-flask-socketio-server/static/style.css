@@ -17,15 +17,12 @@ body {
 
 .shadow {
     display: inline-block;
-    box-shadow: 0 5px 10px -5px rgba(0, 0, 0, 0.8), 2px 5px 10px 5px rgba(0, 0, 0, 0.8) ;
+    box-shadow: 0 5px 10px -5px rgba(0, 0, 0, 0.8), 2px 5px 10px 5px rgba(0, 0, 0, 0.4) ;
 }
-
-
 
 .player{
   margin: 10px 0;
 }
-
 
 #trackinfo {
     display: flex;
@@ -36,6 +33,8 @@ body {
 
 #coverart {
     height: 256px;
+    margin: 15px 0;
+
 }
 
 #artist {
