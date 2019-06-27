@@ -38,7 +38,7 @@ body {
 }
 
 #artist {
-    font-weight: 400;
+    font-weight: 500;
 }
 
 #album {
@@ -47,6 +47,7 @@ body {
 }
 
 #track {
+    color: crimson;
     font-weight: 700;
 }
 
@@ -55,7 +56,8 @@ body {
 }
 
 #updateinfo {
-    color: lightgray;
+    /* color: lightgray; */
+    color: #D3D3D3A0;
     line-height: 1.4;
 }
 
@@ -69,11 +71,11 @@ const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-schem
       background-color: #2F2F2F;
   }
   #artist {
-      color: mediumslateblue;
+      color: crimson;
       font-weight: 600;
   }
   #album {
-      color: slateblue;
+      color: crimson;
   }
   #track {
       color: lavender;
@@ -82,7 +84,8 @@ const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-schem
       color: rebeccapurple;
   }
   #updateinfo {
-      color: steelblue;
+      /* color: steelblue; */
+      color: #4682B480; /* make translucent */
   }
   .shadow {
       display: inline-block;
