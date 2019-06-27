@@ -2,14 +2,14 @@
 
 Utilities to display [`shairport-sync`](https://github.com/mikebrady/shairport-sync) metadata (via MQTT)<sup id="a1">[1](#f1)</sup>
 
-Webapp with real-time track display
------------------------------------
+Webserver webapp
+----------------
+
+[python-flask-socketio-server](python-flask-socketio-server/)
 
 ![Screenshot](python-flask-socketio-server/framed_screenshots.png)
 
-Webserver app - [python-flask-socketio-server](python-flask-socketio-server/)
-
--	Displays track info, including cover art.
+-	Displays currently playing track info, including cover art.
 -	Configurable UI. Dark-mode support.
 -	Support for mobile browsers. Webapp manifest.
 -	Playback controls.

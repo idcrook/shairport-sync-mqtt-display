@@ -1,4 +1,5 @@
 # # -*- systemd -*-
+# - uses virtualenv python version
 # cd /home/pi/projects/shairport-sync-mqtt-display/python-flask-socketio-server/etc
 # sudo cp shairport-sync_web.service  /lib/systemd/system/shairport-sync_web@.service
 # sudo chmod 644 /lib/systemd/system/shairport-sync_web@.service
@@ -9,7 +10,8 @@
 # journalctl -u shairport-sync_web@pi.service
 
 [Unit]
-Description=Shairport-sync Metadata Webserver (screen session)
+Description=Shairport-sync MQTT Remote Control and Metadata Webserver
+Documentation=https://github.com/idcrook/shairport-sync-mqtt-display
 After=network.target time-sync.target mosquitto.service
 # After=network.target time-sync.target
 ConditionPathExists=/home/pi/projects/shairport-sync-mqtt-display/python-flask-socketio-server/etc
