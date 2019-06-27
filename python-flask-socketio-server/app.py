@@ -69,6 +69,9 @@ def populateTemplateData(config):
     if config.get('show_artwork', True):
         templateData['showCoverArt'] = True
 
+    if config.get('artwork_rounded_corners', False):
+        templateData['showCoverArtRoundedCorners'] = True
+
     if config.get('show_track_metadata', True):
         metadata_types = config.get(
             'track_metadata',

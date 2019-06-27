@@ -18,6 +18,7 @@ web_server:
 webui:
   show_player: true
   show_artwork: true
+  artwork_rounded_corners: true
   show_track_metadata: true
   track_metadata:
     - artist

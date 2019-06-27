@@ -15,6 +15,10 @@ body {
     align-items: center;
 }
 
+img.rounded-corners {
+  border-radius: 10px;
+}
+
 .shadow {
     display: inline-block;
     box-shadow: 0 5px 10px -5px rgba(0, 0, 0, 0.8), 2px 5px 10px 5px rgba(0, 0, 0, 0.4) ;
