@@ -7,7 +7,7 @@ Webserver webapp
 
 [python-flask-socketio-server](python-flask-socketio-server/)
 
-![Screenshot](python-flask-socketio-server/framed_screenshots.png)
+![Screenshot - Dark mode on iPhone SE](python-flask-socketio-server/screenshot1.png "Dark mode on iPhone SE")
 
 -	Displays currently playing track info, including cover art.
 -	Configurable UI. Dark-mode support.
