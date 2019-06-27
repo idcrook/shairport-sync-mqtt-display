@@ -97,7 +97,7 @@ python app.py
 # open it in your web browser, e.g.: open http://0.0.0.0:8080
 ```
 
-Use IP address (in place of `0.0.0.0`) to connect from [other devices on your network](#connecting-across-home-network)
+Use IP address (in place of `0.0.0.0`) to connect from [other devices on your network](#browser-address-to-connect-to-on-home-network)
 
 Automatically launch webserver on boot
 --------------------------------------
