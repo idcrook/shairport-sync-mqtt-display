@@ -217,6 +217,9 @@ def on_message(client, userdata, message):
 
 # Configure and launch MQTT broker connection
 mqttc = mqtt.Client(clean_session=True)
+# - clean_session: a disconnect will not add back previous subscriptions
+#   (avoids duplicate subs)
+
 mqttc.on_connect = on_connect
 mqttc.on_message = on_message
 
