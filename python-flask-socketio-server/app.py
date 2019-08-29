@@ -15,9 +15,20 @@ from flask import Flask, render_template, send_from_directory
 from flask_socketio import SocketIO
 from yaml import safe_load
 
+# determine path to this script
+mypath = Path().absolute()
+
+# Load a default image file
+default_image_file = mypath / "static" / "default.png"
+print("Using default cover image file {}".format(default_image_file))
+default_image_mime_type = 'image/png'
+default_image_b64_str = ''
+with open(default_image_file, "rb") as imageFile:
+    image_octets = imageFile.read()
+    default_image_b64_str = base64.b64encode(image_octets).decode('utf-8')
+
 # App will die here if config file is missing.
 # Read only on startup. If edited, app must be relaunched to see changes
-mypath = Path().absolute()
 config_file = mypath / "config.yaml"
 print("Using config file {}".format(config_file))
 with config_file.open() as f:
@@ -28,7 +39,7 @@ MQTT_CONF = config['mqtt']  # required section
 WEBSERVER_CONF = config['web_server']  # required section
 WEBUI_CONF = config.get('webui', {})  # if missing, assume defaults
 
-# "base" topic - shairport-sync.conf {mqtt.topic}
+# "base" topic - shaould match shairport-sync.conf {mqtt.topic}
 TOPIC_ROOT = MQTT_CONF['topic']
 print(TOPIC_ROOT)
 
@@ -55,8 +66,11 @@ known_track_metadata_types = {
 
 
 def populateTemplateData(config):
-    """Use values from config file to form templateData for HTML template."""
+    """Use values from config file to form templateData for HTML template.
+
+    Set default value if the key is not found in config (second arg in dict.get())"""
     templateData = {}
+
     if config.get('show_player', False):
         templateData['showPlayer'] = True
 
@@ -190,15 +204,19 @@ def on_message(client, userdata, message):
     # cover art
     if message.topic == _form_subtopic_topic("cover"):
         # print("cover update")
-        mime_type = _guessImageMime(message.payload)
-        b64_image = base64.b64encode(message.payload).decode('utf-8')
-        msg = {'data': b64_image, 'mimetype': mime_type}
+        if message.payload:
+            mime_type = _guessImageMime(message.payload)
+            image_b64_str = base64.b64encode(message.payload).decode('utf-8')
+        else:
+            mime_type = default_image_mime_type
+            image_b64_str = default_image_b64_str
+        msg = {'data': image_b64_str, 'mimetype': mime_type}
         SAVED_INFO['cover_art'] = msg
         socketio.emit('cover_art', msg)
 
 
 # Configure and launch MQTT broker connection
-mqttc = mqtt.Client()
+mqttc = mqtt.Client(clean_session=True)
 mqttc.on_connect = on_connect
 mqttc.on_message = on_message
 
