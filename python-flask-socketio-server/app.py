@@ -39,7 +39,7 @@ MQTT_CONF = config['mqtt']  # required section
 WEBSERVER_CONF = config['web_server']  # required section
 WEBUI_CONF = config.get('webui', {})  # if missing, assume defaults
 
-# "base" topic - shaould match shairport-sync.conf {mqtt.topic}
+# "base" topic - should match shairport-sync.conf {mqtt.topic}
 TOPIC_ROOT = MQTT_CONF['topic']
 print(TOPIC_ROOT)
 
@@ -114,11 +114,10 @@ def _generate_remote_command(command):
 
 
 def on_connect(client, userdata, flags, rc):
-    """# For when MQTT client receives a CONNACK response from the server.
+    """For when MQTT client receives a CONNACK response from the server.
 
     Adding subscriptions in on_connect() means that they'll be re-subscribed
     for lost/re-connections to MQTT server.
-
     """
 
     # print("Connected with result code {}".format(rc))
@@ -127,7 +126,7 @@ def on_connect(client, userdata, flags, rc):
     subtopic_list.extend(list(known_play_metadata_types.keys()))
 
     # if we are not showing cover art, do not subscribe to it
-    if (populateTemplateData(MQTT_CONF)).get('showCoverArt'):
+    if (populateTemplateData(WEBUI_CONF)).get('showCoverArt'):
         subtopic_list.append('cover')
 
     for subtopic in subtopic_list:
@@ -135,6 +134,15 @@ def on_connect(client, userdata, flags, rc):
         print("topic", topic, end=' ')
         (result, msg_id) = client.subscribe(topic, 0)  # QoS==0 should be fine
         print(msg_id)
+
+
+def on_disconnect(client, userdata, rc):
+    """Called when client disconnects from broker. """
+
+    if rc != 0:
+        print("Unexpected disconnection.")
+
+    client.reinitialise()
 
 
 def _guessImageMime(magic):
@@ -216,11 +224,10 @@ def on_message(client, userdata, message):
 
 
 # Configure and launch MQTT broker connection
-mqttc = mqtt.Client(clean_session=True)
-# - clean_session: a disconnect will not add back previous subscriptions
-#   (avoids duplicate subs)
+mqttc = mqtt.Client()
 
 mqttc.on_connect = on_connect
+mqttc.on_disconnect = on_disconnect
 mqttc.on_message = on_message
 
 if MQTT_CONF.get('use_tls'):
