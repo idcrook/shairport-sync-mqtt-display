@@ -23,7 +23,7 @@ default_image_file = mypath / "static" / "default.png"
 print("Using default cover image file {}".format(default_image_file))
 default_image_mime_type = 'image/png'
 default_image_b64_str = ''
-with open(default_image_file, "rb") as imageFile:
+with default_image_file.open("rb") as imageFile:
     image_octets = imageFile.read()
     default_image_b64_str = base64.b64encode(image_octets).decode('utf-8')
 
