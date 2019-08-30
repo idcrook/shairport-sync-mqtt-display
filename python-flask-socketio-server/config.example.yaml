@@ -10,6 +10,7 @@ mqtt:
     ca_certs_path: null
     certfile_path: null
     keyfile_path: null
+  logger: true
 web_server:
   host: '0.0.0.0'
   port: 8080

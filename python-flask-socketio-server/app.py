@@ -256,10 +256,15 @@ if MQTT_CONF.get('username'):
     else:
         mqttc.username_pw_set(username)
 
+if MQTT_CONF.get('logger'):
+    print('Enabling MQTT logging')
+    mqttc.enable_logger()
+
 mqtt_host = MQTT_CONF['host']
 mqtt_port = MQTT_CONF['port']
 print("Connecting to broker", mqtt_host, 'port', mqtt_port)
 mqttc.connect(mqtt_host, port=mqtt_port)
+# loop_start run a thread in the background
 mqttc.loop_start()
 
 templateData = populateTemplateData(WEBUI_CONF)
