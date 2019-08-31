@@ -103,14 +103,24 @@ def _form_subtopic_topic(subtopic):
     return topic
 
 
-def _generate_remote_command(command):
-    """Return remote topic and message, given command.
+# Available commands listed in shairport-sync.conf
+known_remote_commands = [
+    "command", "beginff", "beginrew", "mutetoggle", "nextitem", "previtem",
+    "pause", "playpause", "play", "stop", "playresume", "shuffle_songs",
+    "volumedown", "volumeup"
+]
 
-    TODO: add checking on names?
-    """
-    topic = TOPIC_ROOT + "/remote"
-    msg = command
-    return topic, msg
+
+def _generate_remote_command(command):
+    """Return MQTT topic and message for a given remote command."""
+
+    if command in known_remote_commands:
+        print(command)
+        topic = TOPIC_ROOT + "/remote"
+        msg = command
+        return topic, msg
+    else:
+        raise ValueError('Unknown remote command: {}'.format(command))
 
 
 def on_connect(client, userdata, flags, rc):
@@ -134,15 +144,6 @@ def on_connect(client, userdata, flags, rc):
         print("topic", topic, end=' ')
         (result, msg_id) = client.subscribe(topic, 0)  # QoS==0 should be fine
         print(msg_id)
-
-
-def on_disconnect(client, userdata, rc):
-    """Called when client disconnects from broker. """
-
-    if rc != 0:
-        print("Unexpected disconnection.")
-
-    client.reinitialise()
 
 
 def _guessImageMime(magic):
@@ -223,11 +224,11 @@ def on_message(client, userdata, message):
         socketio.emit('cover_art', msg)
 
 
-# Configure and launch MQTT broker connection
+# Configure MQTT broker connection
 mqttc = mqtt.Client()
 
+# register callbacks
 mqttc.on_connect = on_connect
-mqttc.on_disconnect = on_disconnect
 mqttc.on_message = on_message
 
 if MQTT_CONF.get('use_tls'):
@@ -260,6 +261,7 @@ if MQTT_CONF.get('logger'):
     print('Enabling MQTT logging')
     mqttc.enable_logger()
 
+# Launch MQTT broker connection
 mqtt_host = MQTT_CONF['host']
 mqtt_port = MQTT_CONF['port']
 print("Connecting to broker", mqtt_host, 'port', mqtt_port)
