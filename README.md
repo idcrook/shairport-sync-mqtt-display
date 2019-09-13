@@ -21,3 +21,10 @@ Code and documentation Copyright © 2019 David Crook under [MIT License](LICENSE
 ---
 
 <i id="f1">1</i>: MQTT metadata support released in `shairport-sync` [Version 3.3](https://github.com/mikebrady/shairport-sync/releases/tag/3.3)[⤸](#a1)
+
+CircuitPython for Character LCD
+===============================
+
+[circuitpython_char_lcd](circuitpython_char_lcd/)
+
+![Photo - Running on as Raspberry Pi](circuitpython_char_lcd/photo1.png "Running on a Pi with 16x2 Character LCD display")
