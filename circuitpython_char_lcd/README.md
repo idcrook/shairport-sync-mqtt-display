@@ -9,7 +9,7 @@ Before we begin
 
 First, some requirements for your home network.
 
-1.	*AirPlay®* source<sup id="a1">[2](#f2)</sup>
+1.	*AirPlay®* source<sup id="a2">[2](#f2)</sup>
 
 2.	*`shairport-sync`* as AirPlay® receiver
 
