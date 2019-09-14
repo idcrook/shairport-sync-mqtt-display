@@ -19,7 +19,7 @@ Display on 16x2 Character LCD
 
 [circuitpython_char_lcd](circuitpython_char_lcd/)
 
-![Photo - Running on as Raspberry Pi](circuitpython_char_lcd/photo1.png "Running on a Pi with 16x2 Character LCD display")
+![Photo - Running on as Raspberry Pi](circuitpython_char_lcd/photo1.jpg "Running on a Pi with 16x2 Character LCD display")
 
 #### License
 

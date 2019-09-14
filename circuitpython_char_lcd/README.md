@@ -1,4 +1,4 @@
-![Display of now playing song track info](photo1.png)
+![Display of now playing song track info](photo1.jpg)
 
 `circuitpython_char_lcd` works in conjunction with [`shairport-sync`](https://github.com/mikebrady/shairport-sync) + MQTT and an Adafruit<sup id="a1">[1](#f1)</sup> 16x2 Character LCD Display on a Raspberry Pi. It has remote-control support.
 
