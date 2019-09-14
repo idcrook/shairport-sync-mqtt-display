@@ -14,7 +14,7 @@ mqtt:
 displayui:
   show_lcd_splash: true
   show_track_metadata: true
-  show_backlight_art_color: false # requires cover art in metadata
+  show_backlight_color: false # requires cover art in metadata
   track_metadata:
     - artist
     # - album
