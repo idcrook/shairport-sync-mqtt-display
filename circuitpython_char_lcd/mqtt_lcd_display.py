@@ -44,8 +44,14 @@ REMOTECONTROL_CONF = config.get('remotecontrol', {})
 TOPIC_ROOT = MQTT_CONF['topic']
 print(TOPIC_ROOT)
 
-# this variable will keep the most recent track info pieces sent to socketio
+# this variable will keep the most recent playing track info
 SAVED_INFO = {}
+
+# Global variable for text update
+UPDATE_DISPLAY = False
+
+# Global variable for backlight update
+UPDATE_DISPLAY_COLOR = False
 
 known_play_metadata_types = {
     'play_end': 'play_end',
@@ -61,36 +67,25 @@ known_track_metadata_types = {
     'genre': 'showGenre'
 }
 
-# def populateTemplateData(config):
-#     """Use values from config file to form templateData for HTML template.
 
-#     Set default value if the key is not found in config (second arg in dict.get())"""
-#     templateData = {}
+def resolveConfigData(config):
+    """Use values from config file-style to resolve settings.
 
-#     if config.get('show_player', False):
-#         templateData['showPlayer'] = True
+    Set default value if the key is not found in config (second arg in dict.get())"""
+    templateData = {}
 
-#     if config.get('show_canvas', False):
-#         templateData['showCanvas'] = True
+    if config.get('show_backlight_color', False):
+        templateData['showBacklightColor'] = True
 
-#     if config.get('show_update_info', True):
-#         templateData['showUpdateInfo'] = True
+    if config.get('show_track_metadata', True):
+        metadata_types = config.get(
+            'track_metadata',
+            ['artist', 'album', 'title'])  # defaults to these three
+        for metadata_type in metadata_types:
+            if metadata_type in known_track_metadata_types:
+                templateData[known_track_metadata_types[metadata_type]] = True
 
-#     if config.get('show_artwork', True):
-#         templateData['showCoverArt'] = True
-
-#     if config.get('artwork_rounded_corners', False):
-#         templateData['showCoverArtRoundedCorners'] = True
-
-#     if config.get('show_track_metadata', True):
-#         metadata_types = config.get(
-#             'track_metadata',
-#             ['artist', 'album', 'title'])  # defaults to these three
-#         for metadata_type in metadata_types:
-#             if metadata_type in known_track_metadata_types:
-#                 templateData[known_track_metadata_types[metadata_type]] = True
-
-#     return templateData
+    return templateData
 
 
 def _form_subtopic_topic(subtopic):
@@ -131,6 +126,10 @@ def on_connect(client, userdata, flags, rc):
     subtopic_list = list(known_track_metadata_types.keys())
     subtopic_list.extend(list(known_play_metadata_types.keys()))
 
+    # only subscribe to cover art if we are going to use it
+    if (resolveConfigData(DISPLAYUI_CONF)).get('showBacklightColor'):
+        subtopic_list.append('cover')
+
     for subtopic in subtopic_list:
         topic = _form_subtopic_topic(subtopic)
         print("topic", topic, end=' ')
@@ -138,24 +137,29 @@ def on_connect(client, userdata, flags, rc):
         print(msg_id)
 
 
-def _send_and_store_playing_metadata(metadata_name, message):
-    """Forms playing metadata message and sends to browser client using socket.io.
+def _guessImageMime(magic):
+    """Peeks at leading bytes in binary object to identify image format."""
 
-    Also saves a copy of sent message (into SAVED_INFO dict), which is used to
-    resend most-recent event messages in case the browser page is refreshed,
-    another browser client connects, etc.
+    if magic.startswith(b'\xff\xd8'):
+        return 'image/jpeg'
+    elif magic.startswith(b'\x89PNG\r\n\x1a\r'):
+        return 'image/png'
+    else:
+        return "image/jpg"
+
+
+def _send_and_store_playing_metadata(metadata_name, message):
+    """Saves currently playing metadata info.
 
     Applies a naming convention of prepending string 'playing_' to metadata
-    name in socketio sent event. Of course the same naming convention is used
-    on receiving client event.
-
+    name in saving data structure.
     """
 
-    print("{} update".format(metadata_name))
-    msg = {'data': message.payload.decode('utf8')}
-    emitted_metadata_name = "playing_{}".format(metadata_name)
-    SAVED_INFO[emitted_metadata_name] = msg
-    # socketio.emit(emitted_metadata_name, msg)
+    global UPDATE_DISPLAY
+    # print("{} update".format(metadata_name))
+    saved_metadata_name = "playing_{}".format(metadata_name)
+    SAVED_INFO[saved_metadata_name] = message.payload.decode('utf8')
+    UPDATE_DISPLAY = True
 
 
 def _send_play_event(metadata_name):
@@ -190,6 +194,16 @@ def on_message(client, userdata, message):
         _send_play_event("play_flush")
     if message.topic == _form_subtopic_topic("play_resume"):
         _send_play_event("play_resume")
+
+    # cover art
+    if message.topic == _form_subtopic_topic("cover"):
+        print("cover update")
+        if message.payload:
+            mime_type = _guessImageMime(message.payload)
+            print(len(message.payload), mime_type)
+            # TODO: get dominant color and translate to RGB backlight space
+        else:
+            pass
 
 
 # Configure MQTT broker connection
@@ -299,6 +313,7 @@ mqttc.loop_start()
 
 
 def lcd_startup_splash(lcd):
+    print(lcd, "Startup splash screen")
     # Set LCD color to red
     lcd.color = [100, 0, 0]
     lcd.message = "shairport-sync\nmqtt_lcd_display"
@@ -347,7 +362,7 @@ if __name__ == "__main__":
     i2c = busio.I2C(board.SCL, board.SDA)
     lcd = character_lcd.Character_LCD_RGB_I2C(i2c, lcd_columns, lcd_rows)
 
-    if False:
+    if DISPLAYUI_CONF.get('show_lcd_splash', False):
         lcd_startup_splash(lcd)
 
     # Set LCD color to yellow
@@ -355,8 +370,12 @@ if __name__ == "__main__":
     lcd.clear()
 
     def graceful_exit():
-        lcd.message = "Exiting...\n"
-        time.sleep(3)
+        # f-strings require python3.6; buster comes with python3.7
+        msg = "Exiting..."
+        fmt_msg = f"{msg:{lcd_columns}s}\n{' ':{lcd_columns}s}"
+        lcd.message = fmt_msg
+
+        #time.sleep(3)
         # Turn off LCD backlights
         lcd.color = [0, 0, 0]
         lcd.clear()
@@ -367,18 +386,48 @@ if __name__ == "__main__":
     print('Starting main loop')
     while True:
         try:
+            button_press = 0
+            # TODO: implement song metadata display refresh
             # FIXME: implement the actual mqtt remote controls
             # scan for button presses
             if lcd.down_button:
                 lcd.message = "Down!   "
+                button_press = 1
             elif lcd.left_button:
                 lcd.message = "Left!   "
+                button_press = 1
             elif lcd.right_button:
                 lcd.message = "Right!  "
+                button_press = 1
             elif lcd.select_button:
                 lcd.message = "Select! "
+                button_press = 1
             elif lcd.up_button:
                 lcd.message = "Up!     "
+                button_press = 1
+
+            if button_press:
+                time.sleep(0.7)
+                lcd.clear()
+                UPDATE_DISPLAY = True
+
+            if UPDATE_DISPLAY:
+                # reset global variable
+                UPDATE_DISPLAY = False
+
+                print(SAVED_INFO)
+
+                # TODO: Handle more than artist and title metadata
+                artist = SAVED_INFO.get('playing_artist', "Artist")
+                title = SAVED_INFO.get('playing_title', "Title")
+                backlight_color = [30, 30, 90]
+                fmt_msg = f"{artist:{lcd_columns}s}\n{title:{lcd_columns}s}"
+
+                # FIXME: hard-coded color
+                lcd.color = [30, 30, 90]
+                lcd.message = fmt_msg
+
+                # TODO: refresh display
 
         except KeyboardInterrupt:
             print("KeyboardInterrupt received. Exiting...")

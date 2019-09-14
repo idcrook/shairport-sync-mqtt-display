@@ -12,13 +12,15 @@ mqtt:
     keyfile_path: null
   logger: true
 displayui:
+  show_lcd_splash: true
   show_track_metadata: true
-  backlight_rgb_sampling: true
+  show_backlight_art_color: false # requires cover art in metadata
   track_metadata:
     - artist
     # - album
     - title
     # - genre
+    -
 remotecontrol:
   remote_controls: true
   buttons:
