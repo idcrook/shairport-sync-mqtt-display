@@ -362,13 +362,6 @@ if __name__ == "__main__":
     i2c = busio.I2C(board.SCL, board.SDA)
     lcd = character_lcd.Character_LCD_RGB_I2C(i2c, lcd_columns, lcd_rows)
 
-    if DISPLAYUI_CONF.get('show_lcd_splash', False):
-        lcd_startup_splash(lcd)
-
-    # Set LCD color to yellow
-    lcd.color = [50, 50, 0]
-    lcd.clear()
-
     def graceful_exit():
         # f-strings require python3.6; buster comes with python3.7
         msg = "Exiting..."
@@ -382,6 +375,21 @@ if __name__ == "__main__":
 
         # Raises SystemExit(0):
         sys.exit(0)
+
+    if DISPLAYUI_CONF.get('show_lcd_splash', False):
+        lcd_startup_splash(lcd)
+
+    # Set LCD color to yellow
+    lcd.color = [50, 50, 0]
+    lcd.clear()
+
+    # initialize SAVED_INFO
+    if True:
+        SAVED_INFO['playing_artist'] = "Unknown Artist"
+        SAVED_INFO['playing_album'] = "Unknown Album"
+        SAVED_INFO['playing_genre'] = "Unknown Genre"
+        SAVED_INFO['playing_title'] = "Unknown Title"
+        UPDATE_DISPLAY = True
 
     print('Starting main loop')
     while True:
