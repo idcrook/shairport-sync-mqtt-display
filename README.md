@@ -17,9 +17,13 @@ Webserver webapp
 Display on 16x2 Character LCD
 =============================
 
+![Photo - Running on as Raspberry Pi](circuitpython_char_lcd/photo1.jpg "Running on a Pi with 16x2 Character LCD display")
+
 [circuitpython_char_lcd](circuitpython_char_lcd/)
 
-![Photo - Running on as Raspberry Pi](circuitpython_char_lcd/photo1.jpg "Running on a Pi with 16x2 Character LCD display")
+-	Configurable display and UI.
+-	Playback remote control support.
+-	Tested using CircuitPython i2c LCD library on a Raspberry Pi.
 
 #### License
 
