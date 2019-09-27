@@ -251,66 +251,6 @@ mqttc.connect(mqtt_host, port=mqtt_port)
 # loop_start run a thread in the background
 mqttc.loop_start()
 
-# @socketio.on('myevent')
-# def handle_my_custom_event(json):
-#     """Re-send now playing info.
-
-#     Using this event, typically emitted from browser client, to re-send now
-#     playing info on a page reload, e.g.
-
-#     """
-#     # print('received data: ' + str(json))
-#     if json.get('data'):
-#         print("myevent:", json['data'])
-
-#     for key, msg in SAVED_INFO.items():
-#         # print(key, msg)
-#         print(key, )
-#         socketio.emit(key, msg)
-
-# @socketio.on('remote_previtem')
-# def handle_previtem(json):
-#     print('handle_previtem', str(json))
-#     (topic, msg) = _generate_remote_command('previtem')
-#     mqttc.publish(topic, msg)
-
-# @socketio.on('remote_nextitem')
-# def handle_nextitem(json):
-#     print('handle_nextitem', str(json))
-#     (topic, msg) = _generate_remote_command('nextitem')
-#     mqttc.publish(topic, msg)
-
-# # what 'stop' does is not desired; cannot be resumed
-# @socketio.on('remote_stop')
-# def handle_stop(json):
-#     print('handle_stop', str(json))
-#     (topic, msg) = _generate_remote_command('stop')
-#     # mqttc.publish(topic, msg)
-
-# @socketio.on('remote_pause')
-# def handle_pause(json):
-#     print('handle_pause', str(json))
-#     (topic, msg) = _generate_remote_command('pause')
-#     mqttc.publish(topic, msg)
-
-# @socketio.on('remote_playpause')
-# def handle_playpause(json):
-#     print('handle_playpause', str(json))
-#     (topic, msg) = _generate_remote_command('playpause')
-#     mqttc.publish(topic, msg)
-
-# @socketio.on('remote_play')
-# def handle_play(json):
-#     print('handle_play', str(json))
-#     (topic, msg) = _generate_remote_command('play')
-#     mqttc.publish(topic, msg)
-
-# @socketio.on('remote_playresume')
-# def handle_playresume(json):
-#     print('handle_playresume', str(json))
-#     (topic, msg) = _generate_remote_command('playresume')
-#     mqttc.publish(topic, msg)
-
 
 def lcd_startup_splash(lcd):
     print(lcd, "Startup splash screen")
@@ -383,7 +323,6 @@ if __name__ == "__main__":
     def _get_formatted_msg_and_props():
         artist = SAVED_INFO.get('playing_artist', "Artist")
         title = SAVED_INFO.get('playing_title', "Title")
-        #formatted_msg = f"{artist:{lcd_columns}.{lcd_row_max_columns}s}\n{title:{lcd_columns}.{lcd_row_max_columns}s}"
         formatted_msg = f"{artist:{lcd_row_max_columns}.{lcd_row_max_columns}s}\n{title:{lcd_row_max_columns}.{lcd_row_max_columns}s}"
 
         # for longer strings
@@ -392,6 +331,15 @@ if __name__ == "__main__":
         max_len = max(list([artist_len, title_len]))
 
         return (formatted_msg, max_len)
+
+    def _handle_button_pressed(button_pressed=None):
+        print(button_pressed)
+        command = REMOTECONTROL_CONF['buttons'].get(button_pressed, None)
+        if command:
+            (topic, msg) = _generate_remote_command(command)
+            mqttc.publish(topic, msg)
+        else:
+            print(f'-E- Could not find command for button = {button_pressed}')
 
     # Set LCD color to yellow
     lcd.color = [50, 50, 0]
@@ -409,31 +357,38 @@ if __name__ == "__main__":
     while True:
         try:
             button_press = 0
-            # TODO: implement song metadata display refresh
-            # FIXME: implement the actual mqtt remote controls
+            button_pressed = None
             # scan for button presses
             if lcd.down_button:
                 lcd.message = "Down!   "
                 button_press = 1
+                button_pressed = 'button_down'
             elif lcd.left_button:
                 lcd.message = "Left!   "
                 button_press = 1
+                button_pressed = 'button_left'
             elif lcd.right_button:
                 lcd.message = "Right!  "
                 button_press = 1
+                button_pressed = 'button_right'
             elif lcd.select_button:
                 lcd.message = "Select! "
                 button_press = 1
+                button_pressed = 'button_select'
             elif lcd.up_button:
                 lcd.message = "Up!     "
                 button_press = 1
+                button_pressed = 'button_up'
 
             if button_press:
-                time.sleep(0.7)
-                lcd.clear()
                 UPDATE_DISPLAY = True
+                _handle_button_pressed(button_pressed=button_pressed)
+                time.sleep(0.7)
 
-            if UPDATE_DISPLAY:
+            # FIXME: needs a debounce or other for previtem twice in a row
+            #     otherwise a long song animation will block out the button
+            #     handling
+            if UPDATE_DISPLAY and button_press == 0:
                 # reset global variable
                 UPDATE_DISPLAY = False
 
