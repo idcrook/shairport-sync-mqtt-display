@@ -8,15 +8,14 @@
 # TODO: implement MQTT display buffer updates
 # TODO: implement track info scrolling settings and controls
 # TODO: correctly implement signal handling (graceful shutdown)
-# TODO: implement remote controls
-# TODO: -  validate remote commands provided in config file
-# TODO: implement backlight color via color sampling of cover art
 
 import os
 from pathlib import Path
 import signal
+import shutil
 import ssl
 import sys
+import tempfile
 import time
 
 import board
@@ -24,6 +23,13 @@ import busio
 import adafruit_character_lcd.character_lcd_rgb_i2c as character_lcd
 import paho.mqtt.client as mqtt
 from yaml import safe_load
+try:
+    from colorthief import ColorThief  # pip install colorthief
+except ImportError:
+    print('For backlight colors from cover art:')
+    print('    pip install colorthief')
+    print('    sudo apt install libtiff5')
+    print('    sudo apt install libopenjp2-7')
 
 # determine path to this script
 mypath = Path().absolute()
@@ -148,6 +154,61 @@ def _guessImageMime(magic):
         return "image/jpg"
 
 
+def _normalizeRGB8bToBacklightRGB(rgb):
+    """Takes an (R,G,B) 8-bit (0-255) ordered tuple and converts it to backlight-compatible tuple.
+
+    CircuitPython adafruit_character_lcd library expects (R,G,B) fields in range of 0-100.
+    """
+
+    scale_factor = 100.0 / 255.0
+    r_scaled = int(rgb[0] * scale_factor)
+    g_scaled = int(rgb[1] * scale_factor)
+    b_scaled = int(rgb[2] * scale_factor)
+
+    r_norm = 100 if r_scaled > 50 else 0
+    g_norm = 100 if g_scaled > 50 else 0
+    b_norm = 100 if b_scaled > 50 else 0
+
+    if (r_norm + g_norm + b_norm) != 0:
+        backlight_rgb = (r_norm, g_norm, b_norm)
+    else:
+        #rgb_norm = list((r_norm, g_norm, b_norm))
+        backlight_rgb = [0, 0, 0]
+        # set value for color that has highest value
+        print(max(rgb))
+        print(rgb.index(max(rgb)))
+        backlight_rgb[rgb.index(max(rgb))] = 50
+        #backlight_rgb = (50, 50, 50)
+
+    if True:
+        print("rgb", rgb)
+        print("rgb scaled", (r_scaled, g_scaled, b_scaled))
+        print("rgb norm", (r_norm, g_norm, b_norm))
+
+    if True:
+        print("backlight_rgb = {}".format(backlight_rgb))
+    return backlight_rgb
+
+
+def _normalizeRGB8bToBacklightRGB2(rgb):
+    """Takes an (R,G,B) 8-bit (0-255) ordered tuple and converts it to backlight-compatible tuple.
+
+    CircuitPython adafruit_character_lcd library expects (R,G,B) fields in
+    range of 0-100 for PWM-controlled hardware. In practice, values of 0, 50 or
+    100 are discernable.
+    """
+
+    rgb_sum = rgb[0] + rgb[1] + rgb[2]
+    scale_factor = 99.0
+    r_scaled = int((rgb[0] / rgb_sum) * scale_factor)
+    g_scaled = int((rgb[1] / rgb_sum) * scale_factor)
+    b_scaled = int((rgb[2] / rgb_sum) * scale_factor)
+    backlight_rgb = (r_scaled, g_scaled, b_scaled)
+    if True:
+        print(backlight_rgb)
+    return backlight_rgb
+
+
 def _send_and_store_playing_metadata(metadata_name, message):
     """Saves currently playing metadata info.
 
@@ -158,7 +219,10 @@ def _send_and_store_playing_metadata(metadata_name, message):
     global UPDATE_DISPLAY
     # print("{} update".format(metadata_name))
     saved_metadata_name = "playing_{}".format(metadata_name)
-    SAVED_INFO[saved_metadata_name] = message.payload.decode('utf8')
+    if metadata_name == 'dominant_color':
+        SAVED_INFO[saved_metadata_name] = message
+    else:
+        SAVED_INFO[saved_metadata_name] = message.payload.decode('utf8')
     UPDATE_DISPLAY = True
 
 
@@ -201,7 +265,22 @@ def on_message(client, userdata, message):
         if message.payload:
             mime_type = _guessImageMime(message.payload)
             print(len(message.payload), mime_type)
-            # TODO: get dominant color and translate to RGB backlight space
+
+            with tempfile.NamedTemporaryFile() as fp:
+                fp.write(message.payload)
+                if False:  # for debugging
+                    fname = fp.name
+                    fname_copy = fname + '.bin'
+                    print(fname, fname_copy)
+                    shutil.copy(fname, fname_copy)
+
+                # get dominant color of cover art image
+                image_to_analyze = ColorThief(fp)
+                dominant_color = image_to_analyze.get_color(quality=20)
+                print(dominant_color)
+                _send_and_store_playing_metadata("dominant_color",
+                                                 dominant_color)
+
         else:
             pass
 
@@ -332,6 +411,15 @@ if __name__ == "__main__":
 
         return (formatted_msg, max_len)
 
+    default_rgb_backlight_color = DISPLAYUI_CONF.get(
+        'default_rgb_backlight_color', (0, 255, 0))
+
+    def _get_backlight_color():
+        dominant_color = SAVED_INFO.get('playing_dominant_color',
+                                        default_rgb_backlight_color)
+        backlight_color = _normalizeRGB8bToBacklightRGB(dominant_color)
+        return backlight_color
+
     def _handle_button_pressed(button_pressed=None):
         print(button_pressed)
         command = REMOTECONTROL_CONF['buttons'].get(button_pressed, None)
@@ -351,6 +439,7 @@ if __name__ == "__main__":
         SAVED_INFO['playing_album'] = "Unknown Album"
         SAVED_INFO['playing_genre'] = "Unknown Genre"
         SAVED_INFO['playing_title'] = "Unknown Title"
+        SAVED_INFO['playing_dominant_color'] = default_rgb_backlight_color
         UPDATE_DISPLAY = True
 
     print('Starting main loop')
@@ -396,9 +485,8 @@ if __name__ == "__main__":
                     print(SAVED_INFO)
 
                 fmt_msg1, max_len = _get_formatted_msg_and_props()
+                backlight_color = _get_backlight_color()
 
-                # FIXME: hard-coded color
-                backlight_color = [30, 30, 90]
                 lcd.color = backlight_color
                 lcd.message = fmt_msg1
 
@@ -406,6 +494,7 @@ if __name__ == "__main__":
                 if max_len > lcd_columns:
                     extra_chars = min(max_len, (2 * lcd_columns) - 1)
                     fmt_msg, junk = _get_formatted_msg_and_props()
+                    lcd.color = _get_backlight_color()
                     lcd.message = fmt_msg
                     for i in range(extra_chars - lcd_columns):
                         # if MQTT message comes in, stop scrolling
@@ -416,6 +505,7 @@ if __name__ == "__main__":
                     time.sleep(scroll_sleep_length)
                     lcd.home()
                     fmt_msg, junk = _get_formatted_msg_and_props()
+                    lcd.color = _get_backlight_color()
                     lcd.message = fmt_msg
 
         except KeyboardInterrupt:

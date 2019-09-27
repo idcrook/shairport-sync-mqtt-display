@@ -15,6 +15,7 @@ displayui:
   show_lcd_splash: true
   show_track_metadata: true
   show_backlight_color: false # requires cover art in metadata
+  default_rgb_backlight_color: [255, 0, 0]  # eight bit RGB
   track_metadata:
     - artist
     # - album

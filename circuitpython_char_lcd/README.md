@@ -63,6 +63,11 @@ pip install adafruit-circuitpython-charlcd
 pip install paho-mqtt
 pip install wheel # not required; avoids a pyyaml benign build error
 pip install pyyaml
+
+# required for backlight color analysis
+pip install colorthief
+sudo apt install libtiff5      # needed on stretch
+sudo apt install libopenjp2-7  # needed on buster
 ```
 
 config
