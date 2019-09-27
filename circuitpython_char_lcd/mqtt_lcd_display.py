@@ -251,66 +251,6 @@ mqttc.connect(mqtt_host, port=mqtt_port)
 # loop_start run a thread in the background
 mqttc.loop_start()
 
-# @socketio.on('myevent')
-# def handle_my_custom_event(json):
-#     """Re-send now playing info.
-
-#     Using this event, typically emitted from browser client, to re-send now
-#     playing info on a page reload, e.g.
-
-#     """
-#     # print('received data: ' + str(json))
-#     if json.get('data'):
-#         print("myevent:", json['data'])
-
-#     for key, msg in SAVED_INFO.items():
-#         # print(key, msg)
-#         print(key, )
-#         socketio.emit(key, msg)
-
-# @socketio.on('remote_previtem')
-# def handle_previtem(json):
-#     print('handle_previtem', str(json))
-#     (topic, msg) = _generate_remote_command('previtem')
-#     mqttc.publish(topic, msg)
-
-# @socketio.on('remote_nextitem')
-# def handle_nextitem(json):
-#     print('handle_nextitem', str(json))
-#     (topic, msg) = _generate_remote_command('nextitem')
-#     mqttc.publish(topic, msg)
-
-# # what 'stop' does is not desired; cannot be resumed
-# @socketio.on('remote_stop')
-# def handle_stop(json):
-#     print('handle_stop', str(json))
-#     (topic, msg) = _generate_remote_command('stop')
-#     # mqttc.publish(topic, msg)
-
-# @socketio.on('remote_pause')
-# def handle_pause(json):
-#     print('handle_pause', str(json))
-#     (topic, msg) = _generate_remote_command('pause')
-#     mqttc.publish(topic, msg)
-
-# @socketio.on('remote_playpause')
-# def handle_playpause(json):
-#     print('handle_playpause', str(json))
-#     (topic, msg) = _generate_remote_command('playpause')
-#     mqttc.publish(topic, msg)
-
-# @socketio.on('remote_play')
-# def handle_play(json):
-#     print('handle_play', str(json))
-#     (topic, msg) = _generate_remote_command('play')
-#     mqttc.publish(topic, msg)
-
-# @socketio.on('remote_playresume')
-# def handle_playresume(json):
-#     print('handle_playresume', str(json))
-#     (topic, msg) = _generate_remote_command('playresume')
-#     mqttc.publish(topic, msg)
-
 
 def lcd_startup_splash(lcd):
     print(lcd, "Startup splash screen")
@@ -358,6 +298,7 @@ def lcd_startup_splash(lcd):
 # Initialize display and launch the main loop
 if __name__ == "__main__":
     lcd_columns = 16
+    lcd_row_max_columns = 31
     lcd_rows = 2
     i2c = busio.I2C(board.SCL, board.SDA)
     lcd = character_lcd.Character_LCD_RGB_I2C(i2c, lcd_columns, lcd_rows)
@@ -379,6 +320,27 @@ if __name__ == "__main__":
     if DISPLAYUI_CONF.get('show_lcd_splash', False):
         lcd_startup_splash(lcd)
 
+    def _get_formatted_msg_and_props():
+        artist = SAVED_INFO.get('playing_artist', "Artist")
+        title = SAVED_INFO.get('playing_title', "Title")
+        formatted_msg = f"{artist:{lcd_row_max_columns}.{lcd_row_max_columns}s}\n{title:{lcd_row_max_columns}.{lcd_row_max_columns}s}"
+
+        # for longer strings
+        artist_len = len(artist)
+        title_len = len(title)
+        max_len = max(list([artist_len, title_len]))
+
+        return (formatted_msg, max_len)
+
+    def _handle_button_pressed(button_pressed=None):
+        print(button_pressed)
+        command = REMOTECONTROL_CONF['buttons'].get(button_pressed, None)
+        if command:
+            (topic, msg) = _generate_remote_command(command)
+            mqttc.publish(topic, msg)
+        else:
+            print(f'-E- Could not find command for button = {button_pressed}')
+
     # Set LCD color to yellow
     lcd.color = [50, 50, 0]
     lcd.clear()
@@ -395,48 +357,68 @@ if __name__ == "__main__":
     while True:
         try:
             button_press = 0
-            # TODO: implement song metadata display refresh
-            # FIXME: implement the actual mqtt remote controls
+            button_pressed = None
             # scan for button presses
             if lcd.down_button:
                 lcd.message = "Down!   "
                 button_press = 1
+                button_pressed = 'button_down'
             elif lcd.left_button:
                 lcd.message = "Left!   "
                 button_press = 1
+                button_pressed = 'button_left'
             elif lcd.right_button:
                 lcd.message = "Right!  "
                 button_press = 1
+                button_pressed = 'button_right'
             elif lcd.select_button:
                 lcd.message = "Select! "
                 button_press = 1
+                button_pressed = 'button_select'
             elif lcd.up_button:
                 lcd.message = "Up!     "
                 button_press = 1
+                button_pressed = 'button_up'
 
             if button_press:
-                time.sleep(0.7)
-                lcd.clear()
                 UPDATE_DISPLAY = True
+                _handle_button_pressed(button_pressed=button_pressed)
+                time.sleep(0.7)
 
-            if UPDATE_DISPLAY:
+            # FIXME: needs a debounce or other for previtem twice in a row
+            #     otherwise a long song animation will block out the button
+            #     handling
+            if UPDATE_DISPLAY and button_press == 0:
                 # reset global variable
                 UPDATE_DISPLAY = False
 
-                print(SAVED_INFO)
+                if False:
+                    print(SAVED_INFO)
 
-                # TODO: Handle more than artist and title metadata
-                artist = SAVED_INFO.get('playing_artist', "Artist")
-                title = SAVED_INFO.get('playing_title', "Title")
-                backlight_color = [30, 30, 90]
-                fmt_msg = f"{artist:{lcd_columns}s}\n{title:{lcd_columns}s}"
+                fmt_msg1, max_len = _get_formatted_msg_and_props()
 
                 # FIXME: hard-coded color
-                lcd.color = [30, 30, 90]
-                lcd.message = fmt_msg
+                backlight_color = [30, 30, 90]
+                lcd.color = backlight_color
+                lcd.message = fmt_msg1
 
-                # TODO: refresh display
+                scroll_sleep_length = 0.45
+                if max_len > lcd_columns:
+                    extra_chars = min(max_len, (2 * lcd_columns) - 1)
+                    fmt_msg, junk = _get_formatted_msg_and_props()
+                    lcd.message = fmt_msg
+                    for i in range(extra_chars - lcd_columns):
+                        # if MQTT message comes in, stop scrolling
+                        if UPDATE_DISPLAY:
+                            continue
+                        time.sleep(scroll_sleep_length)
+                        lcd.move_left()
+                    time.sleep(scroll_sleep_length)
+                    lcd.home()
+                    fmt_msg, junk = _get_formatted_msg_and_props()
+                    lcd.message = fmt_msg
 
         except KeyboardInterrupt:
             print("KeyboardInterrupt received. Exiting...")
             graceful_exit()
+            raise SystemExit
