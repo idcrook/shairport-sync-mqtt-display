@@ -358,6 +358,7 @@ def lcd_startup_splash(lcd):
 # Initialize display and launch the main loop
 if __name__ == "__main__":
     lcd_columns = 16
+    lcd_row_max_columns = 31
     lcd_rows = 2
     i2c = busio.I2C(board.SCL, board.SDA)
     lcd = character_lcd.Character_LCD_RGB_I2C(i2c, lcd_columns, lcd_rows)
@@ -378,6 +379,19 @@ if __name__ == "__main__":
 
     if DISPLAYUI_CONF.get('show_lcd_splash', False):
         lcd_startup_splash(lcd)
+
+    def _get_formatted_msg_and_props():
+        artist = SAVED_INFO.get('playing_artist', "Artist")
+        title = SAVED_INFO.get('playing_title', "Title")
+        #formatted_msg = f"{artist:{lcd_columns}.{lcd_row_max_columns}s}\n{title:{lcd_columns}.{lcd_row_max_columns}s}"
+        formatted_msg = f"{artist:{lcd_row_max_columns}.{lcd_row_max_columns}s}\n{title:{lcd_row_max_columns}.{lcd_row_max_columns}s}"
+
+        # for longer strings
+        artist_len = len(artist)
+        title_len = len(title)
+        max_len = max(list([artist_len, title_len]))
+
+        return (formatted_msg, max_len)
 
     # Set LCD color to yellow
     lcd.color = [50, 50, 0]
@@ -423,20 +437,33 @@ if __name__ == "__main__":
                 # reset global variable
                 UPDATE_DISPLAY = False
 
-                print(SAVED_INFO)
+                if False:
+                    print(SAVED_INFO)
 
-                # TODO: Handle more than artist and title metadata
-                artist = SAVED_INFO.get('playing_artist', "Artist")
-                title = SAVED_INFO.get('playing_title', "Title")
-                backlight_color = [30, 30, 90]
-                fmt_msg = f"{artist:{lcd_columns}s}\n{title:{lcd_columns}s}"
+                fmt_msg1, max_len = _get_formatted_msg_and_props()
 
                 # FIXME: hard-coded color
-                lcd.color = [30, 30, 90]
-                lcd.message = fmt_msg
+                backlight_color = [30, 30, 90]
+                lcd.color = backlight_color
+                lcd.message = fmt_msg1
 
-                # TODO: refresh display
+                scroll_sleep_length = 0.45
+                if max_len > lcd_columns:
+                    extra_chars = min(max_len, (2 * lcd_columns) - 1)
+                    fmt_msg, junk = _get_formatted_msg_and_props()
+                    lcd.message = fmt_msg
+                    for i in range(extra_chars - lcd_columns):
+                        # if MQTT message comes in, stop scrolling
+                        if UPDATE_DISPLAY:
+                            continue
+                        time.sleep(scroll_sleep_length)
+                        lcd.move_left()
+                    time.sleep(scroll_sleep_length)
+                    lcd.home()
+                    fmt_msg, junk = _get_formatted_msg_and_props()
+                    lcd.message = fmt_msg
 
         except KeyboardInterrupt:
             print("KeyboardInterrupt received. Exiting...")
             graceful_exit()
+            raise SystemExit
