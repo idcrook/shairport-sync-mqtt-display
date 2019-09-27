@@ -160,14 +160,17 @@ def _normalizeRGB8bToBacklightRGB(rgb):
     CircuitPython adafruit_character_lcd library expects (R,G,B) fields in range of 0-100.
     """
 
-    scale_factor = 100.0 / 255.0
-    r_scaled = int(rgb[0] * scale_factor)
-    g_scaled = int(rgb[1] * scale_factor)
-    b_scaled = int(rgb[2] * scale_factor)
+    rgb_sum = (rgb[0] + rgb[1] + rgb[2])
+    scale_factor = 100.0 * 3
+    # scaled (100, 100, 100) if they're all equal (sum should add up to 300)
+    r_scaled = int((rgb[0] / rgb_sum) * scale_factor)
+    g_scaled = int((rgb[1] / rgb_sum) * scale_factor)
+    b_scaled = int((rgb[2] / rgb_sum) * scale_factor)
 
-    r_norm = 100 if r_scaled > 50 else 0
-    g_norm = 100 if g_scaled > 50 else 0
-    b_norm = 100 if b_scaled > 50 else 0
+    #
+    r_norm = 100 if r_scaled > 99 else (50 if r_scaled > 95 else 0)
+    g_norm = 100 if g_scaled > 99 else (50 if g_scaled > 95 else 0)
+    b_norm = 100 if b_scaled > 99 else (50 if b_scaled > 95 else 0)
 
     if (r_norm + g_norm + b_norm) != 0:
         backlight_rgb = (r_norm, g_norm, b_norm)
