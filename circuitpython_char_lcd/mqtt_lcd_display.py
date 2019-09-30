@@ -168,9 +168,9 @@ def _normalizeRGB8bToBacklightRGB(rgb):
     b_scaled = int((rgb[2] / rgb_sum) * scale_factor)
 
     #
-    r_norm = 100 if r_scaled > 99 else (50 if r_scaled > 95 else 0)
-    g_norm = 100 if g_scaled > 99 else (50 if g_scaled > 95 else 0)
-    b_norm = 100 if b_scaled > 99 else (50 if b_scaled > 95 else 0)
+    r_norm = 100 if r_scaled >= 99 else (0 if r_scaled > 95 else 0)
+    g_norm = 100 if g_scaled >= 99 else (0 if g_scaled > 95 else 0)
+    b_norm = 100 if b_scaled >= 99 else (0 if b_scaled > 95 else 0)
 
     if (r_norm + g_norm + b_norm) != 0:
         backlight_rgb = (r_norm, g_norm, b_norm)
@@ -190,25 +190,6 @@ def _normalizeRGB8bToBacklightRGB(rgb):
 
     if True:
         print("backlight_rgb = {}".format(backlight_rgb))
-    return backlight_rgb
-
-
-def _normalizeRGB8bToBacklightRGB2(rgb):
-    """Takes an (R,G,B) 8-bit (0-255) ordered tuple and converts it to backlight-compatible tuple.
-
-    CircuitPython adafruit_character_lcd library expects (R,G,B) fields in
-    range of 0-100 for PWM-controlled hardware. In practice, values of 0, 50 or
-    100 are discernable.
-    """
-
-    rgb_sum = rgb[0] + rgb[1] + rgb[2]
-    scale_factor = 99.0
-    r_scaled = int((rgb[0] / rgb_sum) * scale_factor)
-    g_scaled = int((rgb[1] / rgb_sum) * scale_factor)
-    b_scaled = int((rgb[2] / rgb_sum) * scale_factor)
-    backlight_rgb = (r_scaled, g_scaled, b_scaled)
-    if True:
-        print(backlight_rgb)
     return backlight_rgb
 
 
