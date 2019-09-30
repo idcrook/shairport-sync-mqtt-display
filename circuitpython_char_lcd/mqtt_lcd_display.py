@@ -9,6 +9,8 @@
 # TODO: implement track info scrolling settings and controls
 # TODO: correctly implement signal handling (graceful shutdown)
 
+import datetime
+from datetime import timedelta
 import os
 from pathlib import Path
 import signal
@@ -382,6 +384,10 @@ if __name__ == "__main__":
 
     if DISPLAYUI_CONF.get('show_lcd_splash', False):
         lcd_startup_splash(lcd)
+    else:
+        # Set LCD color to "yellow"
+        lcd.color = [50, 50, 0]
+        lcd.clear()
 
     def _get_formatted_msg_and_props():
         artist = SAVED_INFO.get('playing_artist', "Artist")
@@ -413,9 +419,37 @@ if __name__ == "__main__":
         else:
             print(f'-E- Could not find command for button = {button_pressed}')
 
-    # Set LCD color to yellow
-    lcd.color = [50, 50, 0]
-    lcd.clear()
+    def _scan_for_button_press():
+        button_press = 0
+        button_pressed = None
+        # scan for button presses
+        if lcd.down_button:
+            lcd.message = "Down!   "
+            button_press = 1
+            button_pressed = 'button_down'
+        elif lcd.left_button:
+            lcd.message = "Left!   "
+            button_press = 1
+            button_pressed = 'button_left'
+        elif lcd.right_button:
+            lcd.message = "Right!  "
+            button_press = 1
+            button_pressed = 'button_right'
+        elif lcd.select_button:
+            lcd.message = "Select! "
+            button_press = 1
+            button_pressed = 'button_select'
+        elif lcd.up_button:
+            lcd.message = "Up!     "
+            button_press = 1
+            button_pressed = 'button_up'
+
+        if button_press:
+            UPDATE_DISPLAY = True
+            _handle_button_pressed(button_pressed=button_pressed)
+            time.sleep(0.7)
+
+        return button_press
 
     # initialize SAVED_INFO
     if True:
@@ -427,40 +461,13 @@ if __name__ == "__main__":
         UPDATE_DISPLAY = True
 
     print('Starting main loop')
+    scroll_sleep_length = 0.45
+    refresh_interval = 20
+    time_to_refresh = datetime.datetime.now()
     while True:
         try:
-            button_press = 0
-            button_pressed = None
-            # scan for button presses
-            if lcd.down_button:
-                lcd.message = "Down!   "
-                button_press = 1
-                button_pressed = 'button_down'
-            elif lcd.left_button:
-                lcd.message = "Left!   "
-                button_press = 1
-                button_pressed = 'button_left'
-            elif lcd.right_button:
-                lcd.message = "Right!  "
-                button_press = 1
-                button_pressed = 'button_right'
-            elif lcd.select_button:
-                lcd.message = "Select! "
-                button_press = 1
-                button_pressed = 'button_select'
-            elif lcd.up_button:
-                lcd.message = "Up!     "
-                button_press = 1
-                button_pressed = 'button_up'
 
-            if button_press:
-                UPDATE_DISPLAY = True
-                _handle_button_pressed(button_pressed=button_pressed)
-                time.sleep(0.7)
-
-            # FIXME: needs a debounce or other for previtem twice in a row
-            #     otherwise a long song animation will block out the button
-            #     handling
+            button_press = _scan_for_button_press()
             if UPDATE_DISPLAY and button_press == 0:
                 # reset global variable
                 UPDATE_DISPLAY = False
@@ -474,23 +481,47 @@ if __name__ == "__main__":
                 lcd.color = backlight_color
                 lcd.message = fmt_msg1
 
-                scroll_sleep_length = 0.45
                 if max_len > lcd_columns:
                     extra_chars = min(max_len, (2 * lcd_columns) - 1)
                     fmt_msg, junk = _get_formatted_msg_and_props()
                     lcd.color = _get_backlight_color()
                     lcd.message = fmt_msg
+
                     for i in range(extra_chars - lcd_columns):
-                        # if MQTT message comes in, stop scrolling
+                        # handle any button presses while scrolling
+                        button_press = _scan_for_button_press()
+                        if button_press:
+                            break
+
+                        # if MQTT message comes in, skip scrolling
                         if UPDATE_DISPLAY:
-                            continue
+                            break
+
                         time.sleep(scroll_sleep_length)
                         lcd.move_left()
+
+                if not button_press:
                     time.sleep(scroll_sleep_length)
-                    lcd.home()
-                    fmt_msg, junk = _get_formatted_msg_and_props()
-                    lcd.color = _get_backlight_color()
-                    lcd.message = fmt_msg
+                lcd.home()
+                fmt_msg, junk = _get_formatted_msg_and_props()
+                lcd.color = _get_backlight_color()
+                lcd.message = fmt_msg
+
+            current_time = datetime.datetime.now()
+            if False:
+                # duration of loop
+                print(current_time, time_to_refresh)
+
+            if current_time > time_to_refresh:
+                if True:
+                    print('scheduled refresh')
+
+                # schedule a display refresh
+                time_to_refresh = current_time + timedelta(
+                    seconds=refresh_interval)
+                print(current_time, time_to_refresh)
+
+                UPDATE_DISPLAY = True
 
         except KeyboardInterrupt:
             print("KeyboardInterrupt received. Exiting...")
