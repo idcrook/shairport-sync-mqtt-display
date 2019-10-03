@@ -346,17 +346,17 @@ def lcd_startup_splash(lcd):
     lcd.clear()
 
 
-# # systemd: time_display.service: State 'stop-sigterm' timed out. Killing.
-# def handler_stop_signals(signum, frame):
-#     lcd.color = [0, 0, 0]
-#     lcd.message = "Exiting"
-#     time.sleep(3)
-#     lcd.clear()
-#     # Raises SystemExit(0):
-#     sys.exit(0)
+class MySigTermError(Exception):
+    pass
 
-# signal.signal(signal.SIGINT, handler_stop_signals)
-# signal.signal(signal.SIGTERM, handler_stop_signals)
+
+# systemd: sends 'sigterm' 15
+def handler_stop_signals(signum, frame):
+    raise MySigTermError('Received signal ' + str(signum) + ' on line ' +
+                         str(frame.f_lineno) + ' in ' +
+                         frame.f_code.co_filename)
+    return
+
 
 # Initialize display and launch the main loop
 if __name__ == "__main__":
@@ -365,6 +365,9 @@ if __name__ == "__main__":
     lcd_rows = 2
     i2c = busio.I2C(board.SCL, board.SDA)
     lcd = character_lcd.Character_LCD_RGB_I2C(i2c, lcd_columns, lcd_rows)
+
+    # output current process id
+    print('My PID is:', os.getpid())
 
     def graceful_exit():
         # f-strings require python3.6; buster comes with python3.7
@@ -379,6 +382,9 @@ if __name__ == "__main__":
 
         # Raises SystemExit(0):
         sys.exit(0)
+
+    # KeyboardInterrupt # signal.signal(signal.SIGINT, handler_stop_signals)
+    signal.signal(signal.SIGTERM, handler_stop_signals)
 
     if DISPLAYUI_CONF.get('show_lcd_splash', False):
         lcd_startup_splash(lcd)
@@ -531,5 +537,11 @@ if __name__ == "__main__":
 
         except KeyboardInterrupt:
             print("KeyboardInterrupt received. Exiting...")
+            graceful_exit()
+            raise SystemExit
+
+        except MySigTermError as err:
+            print(err)
+            print("signal received. Exiting...")
             graceful_exit()
             raise SystemExit
