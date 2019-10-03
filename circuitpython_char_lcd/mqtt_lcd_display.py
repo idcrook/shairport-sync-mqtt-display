@@ -6,7 +6,6 @@
 #     python3 mqtt_lcd_display.py
 
 # TODO: implement track info scrolling settings and controls
-# TODO: correctly implement signal handling (graceful shutdown)
 
 import datetime
 from datetime import timedelta
@@ -346,16 +345,18 @@ def lcd_startup_splash(lcd):
     lcd.clear()
 
 
-class MySigTermError(Exception):
-    pass
+# via https://stackoverflow.com/questions/18499497/how-to-process-sigterm-signal-gracefully
+class GracefulKiller:
+    kill_now = False
 
+    def __init__(self):
+        signal.signal(signal.SIGINT, self.exit_gracefully)
+        signal.signal(signal.SIGTERM, self.exit_gracefully)
 
-# systemd: sends 'sigterm' 15
-def handler_stop_signals(signum, frame):
-    raise MySigTermError('Received signal ' + str(signum) + ' on line ' +
-                         str(frame.f_lineno) + ' in ' +
-                         frame.f_code.co_filename)
-    return
+    def exit_gracefully(self, signum, frame):
+        print('Received signal ' + str(signum) + ' on line ' +
+              str(frame.f_lineno) + ' in ' + frame.f_code.co_filename)
+        self.kill_now = True
 
 
 # Initialize display and launch the main loop
@@ -366,31 +367,23 @@ if __name__ == "__main__":
     i2c = busio.I2C(board.SCL, board.SDA)
     lcd = character_lcd.Character_LCD_RGB_I2C(i2c, lcd_columns, lcd_rows)
 
-    # output current process id
-    print('My PID is:', os.getpid())
-
-    def graceful_exit():
-        # f-strings require python3.6; buster comes with python3.7
-        msg = "Exiting..."
-        fmt_msg = f"{msg:{lcd_columns}s}\n{' ':{lcd_columns}s}"
-        lcd.message = fmt_msg
-
-        #time.sleep(3)
-        # Turn off LCD backlights
-        lcd.color = [0, 0, 0]
-        lcd.clear()
-
-        # Raises SystemExit(0):
-        sys.exit(0)
-
-    # KeyboardInterrupt # signal.signal(signal.SIGINT, handler_stop_signals)
-    signal.signal(signal.SIGTERM, handler_stop_signals)
-
     if DISPLAYUI_CONF.get('show_lcd_splash', False):
         lcd_startup_splash(lcd)
     else:
         # Set LCD color to "yellow"
-        lcd.color = [50, 50, 0]
+        lcd.color = [100, 100, 0]
+        lcd.clear()
+
+    def graceful_exit():
+        # f-strings require python3.6
+        msg = "Exiting..."
+        fmt_msg = f"{msg:{lcd_columns}s}\n{' ':{lcd_columns}s}"
+        lcd.message = fmt_msg
+
+        # time.sleep(3)
+
+        # Turn off LCD backlights
+        lcd.color = [0, 0, 0]
         lcd.clear()
 
     def _get_formatted_msg_and_props():
@@ -466,82 +459,75 @@ if __name__ == "__main__":
     SAVED_INFO['playing_dominant_color'] = default_rgb_backlight_color
     UPDATE_DISPLAY = True
 
+    # output current process id
+    print('My PID is:', os.getpid())
+
+    killer = GracefulKiller()
     print('Starting main loop')
     scroll_sleep_length = 0.45
     refresh_interval = 25  # in seconds
     time_to_refresh = datetime.datetime.now()
     button_press_delay = 0.7
-    while True:
-        try:
+    while not killer.kill_now:
+        button_press = _scan_for_button_press()
+        if UPDATE_DISPLAY and button_press == 0:
+            # reset global variable
+            UPDATE_DISPLAY = False
 
+            if False:
+                print(SAVED_INFO)
+
+            fmt_msg1, max_len = _get_formatted_msg_and_props()
+            backlight_color = _get_backlight_color()
+
+            lcd.color = backlight_color
+            if button_press: time.sleep(button_press_delay)
+            lcd.message = fmt_msg1
             button_press = _scan_for_button_press()
-            if UPDATE_DISPLAY and button_press == 0:
-                # reset global variable
-                UPDATE_DISPLAY = False
 
-                if False:
-                    print(SAVED_INFO)
-
-                fmt_msg1, max_len = _get_formatted_msg_and_props()
-                backlight_color = _get_backlight_color()
-
-                lcd.color = backlight_color
-                if button_press: time.sleep(button_press_delay)
-                lcd.message = fmt_msg1
-                button_press = _scan_for_button_press()
-
-                if max_len > lcd_columns:
-                    extra_chars = min(max_len, (2 * lcd_columns) - 1)
-                    fmt_msg, junk = _get_formatted_msg_and_props()
-                    lcd.color = _get_backlight_color()
-                    if button_press: time.sleep(button_press_delay)
-                    lcd.message = fmt_msg
-
-                    for i in range(extra_chars - lcd_columns):
-                        # handle any button presses while scrolling
-                        button_press = _scan_for_button_press()
-                        if button_press:
-                            time.sleep(button_press_delay)
-                            break
-
-                        # if MQTT message comes in, skip scrolling
-                        if UPDATE_DISPLAY:
-                            break
-
-                        time.sleep(scroll_sleep_length)
-                        button_press = _scan_for_button_press()
-                        if button_press: time.sleep(button_press_delay)
-                        lcd.move_left()
-
-                # if not button_press:
-                #     time.sleep(scroll_sleep_length)
-                lcd.home()
+            if max_len > lcd_columns:
+                extra_chars = min(max_len, (2 * lcd_columns) - 1)
                 fmt_msg, junk = _get_formatted_msg_and_props()
                 lcd.color = _get_backlight_color()
-                button_press = _scan_for_button_press()
                 if button_press: time.sleep(button_press_delay)
                 lcd.message = fmt_msg
 
-            current_time = datetime.datetime.now()
+                for i in range(extra_chars - lcd_columns):
+                    # handle any button presses while scrolling
+                    button_press = _scan_for_button_press()
+                    if button_press:
+                        time.sleep(button_press_delay)
+                        break
+
+                    # if MQTT message comes in, skip scrolling
+                    if UPDATE_DISPLAY:
+                        break
+
+                    time.sleep(scroll_sleep_length)
+                    button_press = _scan_for_button_press()
+                    if button_press: time.sleep(button_press_delay)
+                    lcd.move_left()
+
+            # if not button_press:
+            #     time.sleep(scroll_sleep_length)
+            lcd.home()
+            fmt_msg, junk = _get_formatted_msg_and_props()
+            lcd.color = _get_backlight_color()
+            button_press = _scan_for_button_press()
+            if button_press: time.sleep(button_press_delay)
+            lcd.message = fmt_msg
+
+        current_time = datetime.datetime.now()
+        if False:
+            print(current_time, time_to_refresh)  # duration of event loop
+        if current_time > time_to_refresh:
+            # schedule a display refresh
+            time_to_refresh = current_time + timedelta(
+                seconds=refresh_interval)
             if False:
-                print(current_time, time_to_refresh)  # duration of event loop
-            if current_time > time_to_refresh:
-                # schedule a display refresh
-                time_to_refresh = current_time + timedelta(
-                    seconds=refresh_interval)
-                if False:
-                    print('scheduled refresh')
-                    print(current_time, time_to_refresh)
+                print('scheduled refresh')
+                print(current_time, time_to_refresh)
 
-                UPDATE_DISPLAY = True
+            UPDATE_DISPLAY = True
 
-        except KeyboardInterrupt:
-            print("KeyboardInterrupt received. Exiting...")
-            graceful_exit()
-            raise SystemExit
-
-        except MySigTermError as err:
-            print(err)
-            print("signal received. Exiting...")
-            graceful_exit()
-            raise SystemExit
+    graceful_exit()
