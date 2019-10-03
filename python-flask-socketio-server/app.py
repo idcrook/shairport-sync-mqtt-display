@@ -74,6 +74,9 @@ def populateTemplateData(config):
     if config.get('show_player', False):
         templateData['showPlayer'] = True
 
+    if config.get('show_player_extended', False):
+        templateData['showPlayerExtended'] = True
+
     if config.get('show_canvas', False):
         templateData['showCanvas'] = True
 

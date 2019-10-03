@@ -116,7 +116,26 @@
      console.log("button stop invoked.");
    });
 
-   // these events come from shareport-sync
+
+   /* $('#volumeSlider').bootstrapSlider().on('slide', function (e) {
+    *   var $el = $('#volumeSlider').bootstrapSlider();
+    *   console.log('slide');
+    *   var value = $el.getValue();
+    *   console.log(value);
+
+    *   /* //Instantiate a slider
+    *    * var mySlider = $("#volumeSlider").slider();
+
+    *    * // Call a method on the slider
+    *    * var value = mySlider.slider('getValue');
+    *    * mySlider.slider('setValue', 20);
+    *    * console.log(value);
+    *    * console.log(mySlider);
+    *    * //var volumeSlider = $("#volumeSlider").bootstrapSlider();
+    *    * /
+   * }); */
+
+   // these events come from shairport-sync
    socket.on('play_flush', function(msg) {
      console.log(msg)
      // playstate='stop';
@@ -165,16 +184,60 @@
   {% if showPlayer %}
   <div class="player text-center">
     <button type="button" id="button_bw" class="btn btn-lg btn-default">
-      <span class="glyphicon glyphicon-backward"></span>
+      <span class="glyphicon glyphicon-step-backward"></span>
     </button>
     <button type="button" id="button_playpause" class="btn btn-lg btn-default">
       <span class="glyphicon glyphicon-pause"></span>
     </button>
+    <button type="button" id="button_fw" class="btn btn-lg btn-default">
+      <span class="glyphicon glyphicon-step-forward"></span>
+    </button>
+  </div>
+  {% endif %}
+  {% if showPlayerExtended %}
+  <div class="player text-center">
+    <button type="button" id="button_volumedown" class="btn btn-lg btn-default">
+      <span class="glyphicon glyphicon-volume-down"></span>
+    </button>
+    <input type="text"
+           name="volume"
+	       data-provide="slider"
+           data-provide-id="volumeSlider"
+	       data-slider-min="0"
+	       data-slider-max="100"
+	       data-slider-step="0.5"
+	       data-slider-value="80"
+	       data-slider-tooltip="show"
+	       data-slider-handle="round"
+	       data-slider-labelledby="volume slider"
+
+    >
+    <button type="button" id="button_volumeup" class="btn btn-lg btn-default">
+      <span class="glyphicon glyphicon-volume-up"></span>
+    </button>
+  </div>
+  <div class="player text-center">
+    <button type="button" id="button_rewind" class="btn btn-lg btn-default">
+      <span class="glyphicon glyphicon-backward"></span>
+    </button>
+    <button type="button" id="button_fastforward" class="btn btn-lg btn-default">
+      <span class="glyphicon glyphicon-forward"></span>
+    </button>
+    <button type="button" id="button_shuffle" class="btn btn-lg btn-default">
+      <span class="glyphicon glyphicon-random"></span>
+      <span class="glyphicon glyphicon-random"></span>
+    </button>
+  </div>
+  <div class="player text-center">
+    <button type="button" id="button_mute" class="btn btn-lg btn-default">
+      <span class="glyphicon glyphicon-volume-off"></span>
+      <span class="glyphicon glyphicon-music"></span>
+    </button>
     <button type="button" id="button_stop" class="btn btn-lg btn-default">
       <span class="glyphicon glyphicon-stop"></span>
     </button>
-    <button type="button" id="button_fw" class="btn btn-lg btn-default">
-      <span class="glyphicon glyphicon-forward"></span>
+    <button type="button" id="button_eject" class="btn btn-lg btn-default">
+      <span class="glyphicon glyphicon-eject"></span>
     </button>
   </div>
   {% endif %}
