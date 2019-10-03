@@ -492,7 +492,13 @@ if __name__ == "__main__":
                 if button_press: time.sleep(button_press_delay)
                 lcd.message = fmt_msg
 
+                if killer.kill_now:
+                    break
+
                 for i in range(extra_chars - lcd_columns):
+                    if killer.kill_now:
+                        break
+
                     # handle any button presses while scrolling
                     button_press = _scan_for_button_press()
                     if button_press:
@@ -508,8 +514,6 @@ if __name__ == "__main__":
                     if button_press: time.sleep(button_press_delay)
                     lcd.move_left()
 
-            # if not button_press:
-            #     time.sleep(scroll_sleep_length)
             lcd.home()
             fmt_msg, junk = _get_formatted_msg_and_props()
             lcd.color = _get_backlight_color()
