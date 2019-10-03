@@ -14,14 +14,13 @@ mqtt:
 displayui:
   show_lcd_splash: true
   show_track_metadata: true
-  show_backlight_color: false # requires cover art in metadata
-  default_rgb_backlight_color: [255, 0, 0]  # eight bit RGB
+  update_backlight_color: false # true will add cover art metadata/processing
+  default_rgb_backlight_color: [255, 255, 255]  # LCD may not support PWM colors
   track_metadata:
     - artist
     # - album
     - title
     # - genre
-    -
 remotecontrol:
   remote_controls: true
   buttons:

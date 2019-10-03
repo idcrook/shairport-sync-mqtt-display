@@ -5,7 +5,6 @@
 # to run:
 #     python3 mqtt_lcd_display.py
 
-# TODO: implement MQTT display buffer updates
 # TODO: implement track info scrolling settings and controls
 # TODO: correctly implement signal handling (graceful shutdown)
 
@@ -82,7 +81,8 @@ def resolveConfigData(config):
     Set default value if the key is not found in config (second arg in dict.get())"""
     templateData = {}
 
-    if config.get('show_backlight_color', False):
+    print('backlight coloring', config.get('update_backlight_color', False))
+    if config.get('update_backlight_color', False):
         templateData['showBacklightColor'] = True
 
     if config.get('show_track_metadata', True):
@@ -177,20 +177,18 @@ def _normalizeRGB8bToBacklightRGB(rgb):
     if (r_norm + g_norm + b_norm) != 0:
         backlight_rgb = (r_norm, g_norm, b_norm)
     else:
-        #rgb_norm = list((r_norm, g_norm, b_norm))
         backlight_rgb = [0, 0, 0]
         # set value for color that has highest value
         print(max(rgb))
         print(rgb.index(max(rgb)))
-        backlight_rgb[rgb.index(max(rgb))] = 50
-        #backlight_rgb = (50, 50, 50)
+        backlight_rgb[rgb.index(max(rgb))] = 100
 
-    if True:
+    if False:
         print("rgb", rgb)
         print("rgb scaled", (r_scaled, g_scaled, b_scaled))
         print("rgb norm", (r_norm, g_norm, b_norm))
 
-    if True:
+    if False:
         print("backlight_rgb = {}".format(backlight_rgb))
     return backlight_rgb
 
@@ -401,6 +399,7 @@ if __name__ == "__main__":
 
         return (formatted_msg, max_len)
 
+    # read default backlight color
     default_rgb_backlight_color = DISPLAYUI_CONF.get(
         'default_rgb_backlight_color', (0, 255, 0))
 
@@ -410,10 +409,13 @@ if __name__ == "__main__":
         backlight_color = _normalizeRGB8bToBacklightRGB(dominant_color)
         return backlight_color
 
-    def _handle_button_pressed(button_pressed=None):
+    def _handle_button_pressed(lcd, button_pressed=None):
         print(button_pressed)
         command = REMOTECONTROL_CONF['buttons'].get(button_pressed, None)
         if command:
+            # print command onto LCD
+            lcd.message = "<<" + command + ">>"
+
             (topic, msg) = _generate_remote_command(command)
             mqttc.publish(topic, msg)
         else:
@@ -424,46 +426,45 @@ if __name__ == "__main__":
         button_pressed = None
         # scan for button presses
         if lcd.down_button:
-            lcd.message = "Down!   "
+            # lcd.message = "Down!   "
             button_press = 1
             button_pressed = 'button_down'
         elif lcd.left_button:
-            lcd.message = "Left!   "
+            # lcd.message = "Left!   "
             button_press = 1
             button_pressed = 'button_left'
         elif lcd.right_button:
-            lcd.message = "Right!  "
+            # lcd.message = "Right!  "
             button_press = 1
             button_pressed = 'button_right'
         elif lcd.select_button:
-            lcd.message = "Select! "
+            # lcd.message = "Select! "
             button_press = 1
             button_pressed = 'button_select'
         elif lcd.up_button:
-            lcd.message = "Up!     "
+            # lcd.message = "Up!     "
             button_press = 1
             button_pressed = 'button_up'
 
         if button_press:
             UPDATE_DISPLAY = True
-            _handle_button_pressed(button_pressed=button_pressed)
-            time.sleep(0.7)
+            _handle_button_pressed(lcd, button_pressed=button_pressed)
 
         return button_press
 
     # initialize SAVED_INFO
-    if True:
-        SAVED_INFO['playing_artist'] = "Unknown Artist"
-        SAVED_INFO['playing_album'] = "Unknown Album"
-        SAVED_INFO['playing_genre'] = "Unknown Genre"
-        SAVED_INFO['playing_title'] = "Unknown Title"
-        SAVED_INFO['playing_dominant_color'] = default_rgb_backlight_color
-        UPDATE_DISPLAY = True
+    SAVED_INFO['playing_artist'] = "Unknown Artist"
+    SAVED_INFO['playing_album'] = "Unknown Album"
+    SAVED_INFO['playing_genre'] = "Unknown Genre"
+    SAVED_INFO['playing_title'] = "Unknown Title"
+    SAVED_INFO['playing_dominant_color'] = default_rgb_backlight_color
+    UPDATE_DISPLAY = True
 
     print('Starting main loop')
     scroll_sleep_length = 0.45
-    refresh_interval = 20
+    refresh_interval = 25  # in seconds
     time_to_refresh = datetime.datetime.now()
+    button_press_delay = 0.7
     while True:
         try:
 
@@ -479,18 +480,22 @@ if __name__ == "__main__":
                 backlight_color = _get_backlight_color()
 
                 lcd.color = backlight_color
+                if button_press: time.sleep(button_press_delay)
                 lcd.message = fmt_msg1
+                button_press = _scan_for_button_press()
 
                 if max_len > lcd_columns:
                     extra_chars = min(max_len, (2 * lcd_columns) - 1)
                     fmt_msg, junk = _get_formatted_msg_and_props()
                     lcd.color = _get_backlight_color()
+                    if button_press: time.sleep(button_press_delay)
                     lcd.message = fmt_msg
 
                     for i in range(extra_chars - lcd_columns):
                         # handle any button presses while scrolling
                         button_press = _scan_for_button_press()
                         if button_press:
+                            time.sleep(button_press_delay)
                             break
 
                         # if MQTT message comes in, skip scrolling
@@ -498,28 +503,29 @@ if __name__ == "__main__":
                             break
 
                         time.sleep(scroll_sleep_length)
+                        button_press = _scan_for_button_press()
+                        if button_press: time.sleep(button_press_delay)
                         lcd.move_left()
 
-                if not button_press:
-                    time.sleep(scroll_sleep_length)
+                # if not button_press:
+                #     time.sleep(scroll_sleep_length)
                 lcd.home()
                 fmt_msg, junk = _get_formatted_msg_and_props()
                 lcd.color = _get_backlight_color()
+                button_press = _scan_for_button_press()
+                if button_press: time.sleep(button_press_delay)
                 lcd.message = fmt_msg
 
             current_time = datetime.datetime.now()
             if False:
-                # duration of loop
-                print(current_time, time_to_refresh)
-
+                print(current_time, time_to_refresh)  # duration of event loop
             if current_time > time_to_refresh:
-                if True:
-                    print('scheduled refresh')
-
                 # schedule a display refresh
                 time_to_refresh = current_time + timedelta(
                     seconds=refresh_interval)
-                print(current_time, time_to_refresh)
+                if False:
+                    print('scheduled refresh')
+                    print(current_time, time_to_refresh)
 
                 UPDATE_DISPLAY = True
 

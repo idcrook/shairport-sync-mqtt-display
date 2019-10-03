@@ -12,8 +12,7 @@
 [Unit]
 Description=Shairport-sync MQTT Remote Control and LCD Display
 Documentation=https://github.com/idcrook/shairport-sync-mqtt-display
-After=network.target time-sync.target mosquitto.service
-# After=network.target time-sync.target
+After=network.target time-sync.target
 ConditionPathExists=/home/pi/projects/shairport-sync-mqtt-display/circuitpython_char_lcd/etc
 
 [Service]
