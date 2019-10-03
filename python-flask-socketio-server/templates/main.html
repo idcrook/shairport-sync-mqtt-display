@@ -46,11 +46,21 @@
 
    // handle playing track info fields
    socket.on('playing_title', function(msg) {
-	 var nDate = new Date();
-     var hours = nDate.getHours(); var minutes = nDate.getMinutes();
-     var text_hours = pad('00', hours, true); var text_minutes = pad('00', minutes, true);
-     $('#updatedInfo').text(text_hours + ':' + text_minutes).html();
      $('#track').text(msg.data).html();
+     let format24 = false;
+     // fixme: https://github.com/idcrook/shairport-sync-mqtt-display/issues/16
+ 	 var nDate = new Date();
+     var hours = nDate.getHours(); var minutes = nDate.getMinutes();
+     var suffix = (hours >= 12)? 'pm' : 'am';
+     var text_hours = pad('00', hours, true);
+     var text_minutes = pad('00', minutes, true);
+     if (format24) {
+       suffix = '';
+     } else {
+       // convert to 12 hour format from 0-23
+       text_hours = ((hours + 11) % 12 + 1);
+     }
+     $('#updatedInfo').text(text_hours + ':' + text_minutes + suffix).html();
    });
    socket.on('playing_artist', function(msg) {
      $('#artist').text(msg.data).html();
