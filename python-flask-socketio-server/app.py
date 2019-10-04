@@ -71,11 +71,20 @@ def populateTemplateData(config):
     Set default value if the key is not found in config (second arg in dict.get())"""
     templateData = {}
 
-    if config.get('show_player', False):
+    if config.get('show_player', True):
         templateData['showPlayer'] = True
 
-    if config.get('show_player_extended', False):
-        templateData['showPlayerExtended'] = True
+        if config.get('show_player_extended', False):
+            templateData['showPlayerExtended'] = True
+
+        if config.get('show_player_shuffle', False):
+            templateData['showPlayerShuffle'] = True
+
+        if config.get('show_player_seeking', False):
+            templateData['showPlayerSeeking'] = True
+
+        if config.get('show_player_stop', False):
+            templateData['showPlayerStop'] = True
 
     if config.get('show_canvas', False):
         templateData['showCanvas'] = True
@@ -363,6 +372,27 @@ def handle_playresume(json):
 def handle_mutetoggle(json):
     print('handle_mutetoggle', str(json))
     (topic, msg) = _generate_remote_command('mutetoggle')
+    mqttc.publish(topic, msg)
+
+
+@socketio.on('remote_beginrew')
+def handle_beginrew(json):
+    print('handle_beginrew', str(json))
+    (topic, msg) = _generate_remote_command('beginrew')
+    mqttc.publish(topic, msg)
+
+
+@socketio.on('remote_beginff')
+def handle_beginff(json):
+    print('handle_beginff', str(json))
+    (topic, msg) = _generate_remote_command('beginff')
+    mqttc.publish(topic, msg)
+
+
+@socketio.on('remote_shuffle_songs')
+def handle_shuffle_songs(json):
+    print('handle_shuffle_songs', str(json))
+    (topic, msg) = _generate_remote_command('shuffle_songs')
     mqttc.publish(topic, msg)
 
 

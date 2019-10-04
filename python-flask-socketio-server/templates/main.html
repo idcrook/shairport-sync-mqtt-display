@@ -26,6 +26,9 @@
      else if (changeto == 'pause') {
        $el.find('span.glyphicon').removeClass('glyphicon-play').addClass('glyphicon-pause');
      }
+     else if (changeto == 'stop') {
+       $el.find('span.glyphicon').addClass('glyphicon-play');
+     }
    } else {
      $el.find('span.glyphicon').toggleClass('glyphicon-play glyphicon-pause');
    }
@@ -69,6 +72,7 @@
 
    var playstate = 'play';
    var mutestate = 'unmute';
+   var seekstate = 'none';
 
    $("#coverart").attr("src", "{{ url_for('static', filename='default.png') }}" );
 
@@ -108,6 +112,8 @@
      $("#coverart").attr("src","data:" + msg.mimetype + ";base64," + msg.data);
    });
 
+   // the following syncs state, but will resume playback even if paused
+   // socket.emit('remote_playresume', {});
 
    // button handlers
    $('#button_bw').on('click', function (e) {
@@ -149,7 +155,6 @@
    });
 
    {% if showPlayerExtended %}
-
    $('#button_mute').on('click', function (e) {
      change_mute_button_glyph(mutestate);
      if (mutestate=='unmute') {
@@ -162,30 +167,82 @@
      console.log("button mute invoked.");
    });
 
+   {% if showPlayerShuffle %}
+   // shuffle_songs does not seem to work
+   $('#button_shuffle').on('click', function (e) {
+     //change_shuffle_button_glyph();
+     socket.emit('remote_shuffle_songs', {});
+
+     console.log("button shuffle invoked.");
+   });
+   {% endif %} // showPlayerShuffle
+
+   {% if showPlayerStop %}
+   // shuffle_songs does not seem to work
+   $('#button_stop').on('click', function (e) {
+     socket.emit('remote_stop', {});
+     console.log("button stop invoked.");
+   });
+   {% endif %} // showPlayerStop
+
+   {% if showPlayerSeeking %}
+   /* https://nto.github.io/AirPlay.html#audio-remotecontrol */
+   $('#button_rewind').on('click', function (e) {
+     console.log("button rewind invoked.");
+     console.log("seekstate = " + seekstate);
+     //change_rewind_button_glyph(mutestate);
+     if (seekstate=='none') {
+       seekstate='rewind';
+       socket.emit('remote_beginrew', {});
+     } else if (seekstate=='rewind') { // already rewinding?
+       //seekstate='none';
+       socket.emit('remote_playresume', {});
+       // this should play after fast forward or rewind
+     } else if (seekstate=='fastforward') { // fast forwarding?
+       seekstate='rewind';
+       socket.emit('remote_beginrew', {});
+     }
+   });
+
+   $('#button_fastforward').on('click', function (e) {
+     console.log("button fastforward invoked.");
+     console.log("seekstate = " + seekstate);
+     //change_fastforward_button_glyph(seekstate);
+     if (seekstate=='none') {
+       seekstate='fastforward';
+       socket.emit('remote_beginff', {});
+     } else if (seekstate=='rewind') { // rewinding?
+       seekstate='fastforward';
+       socket.emit('remote_beginff', {}); // ???
+     } else if (seekstate=='fastforward') { // already fast forwarding?
+       //seekstate='none';
+       socket.emit('remote_playresume', {});
+       // this should play after fast forward or rewind
+     }
+   });
+
+   {% endif %} // showPlayerSeeking
 
    volumeSlider.on('slide', function(slideEvt) {
-     console.log('slide');
+     //console.log('slide');
    });
 
    volumeSlider.on('slideStop', function(slideEvt) {
      console.log('slideStop ' + slideEvt.value);
    });
 
-
-   {% endif %}
-
-
+   {% endif %} // showPlayerExtended
 
    // these events come from shairport-sync
    socket.on('play_flush', function(msg) {
      console.log(msg)
-     // playstate='stop';
+     playstate='pause';
      change_playpause_button_glyph('play');
    });
    socket.on('play_end', function(msg) {
      console.log(msg)
      playstate='stop';
-     change_playpause_button_glyph('play');
+     change_playpause_button_glyph('stop');
    });
    socket.on('play_start', function(msg) {
      console.log(msg)
@@ -195,6 +252,7 @@
    socket.on('play_resume', function(msg) {
      console.log(msg)
      playstate='play';
+     seekstate='none';
      change_playpause_button_glyph('pause');
    });
 
@@ -221,30 +279,29 @@
 
   {% if showUpdateInfo %} <div id="updateinfo">Song info updated <span id="updatedInfo"></span></div>  {% endif %}
 
-  <!-- <hr/> -->
   {% if showPlayer %}
   <div class="player text-center">
     <button type="button" id="button_bw" class="btn btn-lg btn-default">
       <span class="glyphicon glyphicon-step-backward"></span>
     </button>
-    {% if showPlayerExtended %}
+    {% if showPlayerSeeking %}
     <button type="button" id="button_rewind" class="btn btn-lg btn-default">
       <span class="glyphicon glyphicon-backward"></span>
     </button>
-    {% endif %}
+    {% endif %} <!-- showPlayerSeeking -->
     <button type="button" id="button_playpause" class="btn btn-lg btn-default">
       <span class="glyphicon glyphicon-pause"></span>
     </button>
-    {% if showPlayerExtended %}
+    {% if showPlayerSeeking %}
     <button type="button" id="button_fastforward" class="btn btn-lg btn-default">
       <span class="glyphicon glyphicon-forward"></span>
     </button>
-    {% endif %}
+    {% endif %} <!-- showPlayerSeeking -->
     <button type="button" id="button_fw" class="btn btn-lg btn-default">
       <span class="glyphicon glyphicon-step-forward"></span>
     </button>
   </div>
-  {% endif %}
+  {% endif %} <!-- showPlayer -->
   {% if showPlayerExtended %}
   <div class="player text-center">
     <button type="button" id="button_volumedown" class="btn btn-sm btn-link">
@@ -258,19 +315,19 @@
   <div class="player text-center">
     <button type="button" id="button_mute" class="btn btn-lg btn-default">
       <span class="glyphicon glyphicon-volume-off"></span>
-      <!-- <span class="glyphicon glyphicon-music"></span> -->
     </button>
+    {% if showPlayerShuffle %}
     <button type="button" id="button_shuffle" class="btn btn-lg btn-default">
       <span class="glyphicon glyphicon-random"></span>
     </button>
+    {% endif %} <!-- showPlayerShuffle -->
+    {% if showPlayerStop %}
     <button type="button" id="button_stop" class="btn btn-lg btn-default">
       <span class="glyphicon glyphicon-stop"></span>
     </button>
-    <button type="button" id="button_eject" class="btn btn-lg btn-default">
-      <span class="glyphicon glyphicon-eject"></span>
-    </button>
+    {% endif %} <!-- showPlayerStop -->
   </div>
-  {% endif %}
+  {% endif %} <!-- showPlayerExtended -->
   {% if showCanvas %}
   <canvas id="canvas"></canvas>
   {% endif %}
