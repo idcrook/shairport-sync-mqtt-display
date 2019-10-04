@@ -359,6 +359,13 @@ def handle_playresume(json):
     mqttc.publish(topic, msg)
 
 
+@socketio.on('remote_mutetoggle')
+def handle_mutetoggle(json):
+    print('handle_mutetoggle', str(json))
+    (topic, msg) = _generate_remote_command('mutetoggle')
+    mqttc.publish(topic, msg)
+
+
 # launch the Flask (+socketio) webserver!
 if __name__ == "__main__":
     web_host = WEBSERVER_CONF['host']

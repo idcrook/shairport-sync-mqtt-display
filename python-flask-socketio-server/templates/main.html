@@ -31,12 +31,44 @@
    }
  }
 
+ function change_mute_button_glyph(changefrom) {
+   var $el = $('#button_mute');
+   if (changefrom !== undefined) {
+     console.log('change button from ' + changefrom);
+     if (changefrom == 'unmute') {
+       $el.find('span.glyphicon').removeClass('glyphicon-volume-off').addClass('glyphicon-music');
+     }
+     else if (changefrom == 'mute') {
+       $el.find('span.glyphicon').removeClass('glyphicon-music').addClass('glyphicon-volume-off');
+     }
+   } else {
+     $el.find('span.glyphicon').toggleClass('glyphicon-music glyphicon-volume-off');
+   }
+ }
+
+
  $(document).ready(function() {
    var socket = io.connect('http://' + document.domain + ':' + location.port);
    {% if showCanvas %}
    var ctx = document.getElementById('canvas').getContext('2d');
    {% endif %}
+
+   {% if showPlayerExtended %}
+   // Instantiate a slider
+   var volumeSlider = $("#slider_volume").bootstrapSlider({
+  	 min: 0,
+  	 max: 100,
+     step: 0.5,
+  	 value: 80,
+     tooltip: "show",
+     tooltip_position: "bottom",
+	 handle: "round",
+   });
+
+   {% endif %}
+
    var playstate = 'play';
+   var mutestate = 'unmute';
 
    $("#coverart").attr("src", "{{ url_for('static', filename='default.png') }}" );
 
@@ -116,24 +148,33 @@
      console.log("button stop invoked.");
    });
 
+   {% if showPlayerExtended %}
 
-   /* $('#volumeSlider').bootstrapSlider().on('slide', function (e) {
-    *   var $el = $('#volumeSlider').bootstrapSlider();
-    *   console.log('slide');
-    *   var value = $el.getValue();
-    *   console.log(value);
+   $('#button_mute').on('click', function (e) {
+     change_mute_button_glyph(mutestate);
+     if (mutestate=='unmute') {
+       mutestate='mute';
+     } else {
+       mutestate='unmute';
+     }
+     socket.emit('remote_mutetoggle', {});
 
-    *   /* //Instantiate a slider
-    *    * var mySlider = $("#volumeSlider").slider();
+     console.log("button mute invoked.");
+   });
 
-    *    * // Call a method on the slider
-    *    * var value = mySlider.slider('getValue');
-    *    * mySlider.slider('setValue', 20);
-    *    * console.log(value);
-    *    * console.log(mySlider);
-    *    * //var volumeSlider = $("#volumeSlider").bootstrapSlider();
-    *    * /
-   * }); */
+
+   volumeSlider.on('slide', function(slideEvt) {
+     console.log('slide');
+   });
+
+   volumeSlider.on('slideStop', function(slideEvt) {
+     console.log('slideStop ' + slideEvt.value);
+   });
+
+
+   {% endif %}
+
+
 
    // these events come from shairport-sync
    socket.on('play_flush', function(msg) {
@@ -186,9 +227,19 @@
     <button type="button" id="button_bw" class="btn btn-lg btn-default">
       <span class="glyphicon glyphicon-step-backward"></span>
     </button>
+    {% if showPlayerExtended %}
+    <button type="button" id="button_rewind" class="btn btn-lg btn-default">
+      <span class="glyphicon glyphicon-backward"></span>
+    </button>
+    {% endif %}
     <button type="button" id="button_playpause" class="btn btn-lg btn-default">
       <span class="glyphicon glyphicon-pause"></span>
     </button>
+    {% if showPlayerExtended %}
+    <button type="button" id="button_fastforward" class="btn btn-lg btn-default">
+      <span class="glyphicon glyphicon-forward"></span>
+    </button>
+    {% endif %}
     <button type="button" id="button_fw" class="btn btn-lg btn-default">
       <span class="glyphicon glyphicon-step-forward"></span>
     </button>
@@ -196,42 +247,21 @@
   {% endif %}
   {% if showPlayerExtended %}
   <div class="player text-center">
-    <button type="button" id="button_volumedown" class="btn btn-lg btn-default">
+    <button type="button" id="button_volumedown" class="btn btn-sm btn-link">
       <span class="glyphicon glyphicon-volume-down"></span>
     </button>
-    <input type="text"
-           name="volume"
-	       data-provide="slider"
-           data-provide-id="volumeSlider"
-	       data-slider-min="0"
-	       data-slider-max="100"
-	       data-slider-step="0.5"
-	       data-slider-value="80"
-	       data-slider-tooltip="show"
-	       data-slider-handle="round"
-	       data-slider-labelledby="volume slider"
-
-    >
-    <button type="button" id="button_volumeup" class="btn btn-lg btn-default">
+    <input type="text" id="slider_volume">
+    <button type="button" id="button_volumeup" class="btn btn-sm btn-link">
       <span class="glyphicon glyphicon-volume-up"></span>
-    </button>
-  </div>
-  <div class="player text-center">
-    <button type="button" id="button_rewind" class="btn btn-lg btn-default">
-      <span class="glyphicon glyphicon-backward"></span>
-    </button>
-    <button type="button" id="button_fastforward" class="btn btn-lg btn-default">
-      <span class="glyphicon glyphicon-forward"></span>
-    </button>
-    <button type="button" id="button_shuffle" class="btn btn-lg btn-default">
-      <span class="glyphicon glyphicon-random"></span>
-      <span class="glyphicon glyphicon-random"></span>
     </button>
   </div>
   <div class="player text-center">
     <button type="button" id="button_mute" class="btn btn-lg btn-default">
       <span class="glyphicon glyphicon-volume-off"></span>
-      <span class="glyphicon glyphicon-music"></span>
+      <!-- <span class="glyphicon glyphicon-music"></span> -->
+    </button>
+    <button type="button" id="button_shuffle" class="btn btn-lg btn-default">
+      <span class="glyphicon glyphicon-random"></span>
     </button>
     <button type="button" id="button_stop" class="btn btn-lg btn-default">
       <span class="glyphicon glyphicon-stop"></span>
