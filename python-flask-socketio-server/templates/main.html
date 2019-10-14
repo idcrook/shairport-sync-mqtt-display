@@ -147,6 +147,16 @@
    });
 
    {% if showPlayerExtended %}
+   // volume button handlers
+   $('#button_volumedown').on('click', function (e) {
+     console.log("button volumedown invoked.");
+     socket.emit('remote_volumedown', {});
+   });
+   $('#button_volumeup').on('click', function (e) {
+     console.log("button volumeup invoked.");
+     socket.emit('remote_volumeup', {});
+   });
+
    $('#button_mute').on('click', function (e) {
      change_mute_button_glyph(mutestate);
      if (mutestate=='unmute') {
