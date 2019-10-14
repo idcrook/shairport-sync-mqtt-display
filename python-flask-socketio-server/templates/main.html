@@ -26,17 +26,61 @@
      else if (changeto == 'pause') {
        $el.find('span.glyphicon').removeClass('glyphicon-play').addClass('glyphicon-pause');
      }
+     else if (changeto == 'stop') {
+       $el.find('span.glyphicon').addClass('glyphicon-play');
+     }
    } else {
      $el.find('span.glyphicon').toggleClass('glyphicon-play glyphicon-pause');
    }
  }
+
+ function change_mute_button_glyph(changefrom) {
+   var $el = $('#button_mute');
+   if (changefrom !== undefined) {
+     console.log('change button from ' + changefrom);
+     if (changefrom == 'unmute') {
+       $el.find('span.glyphicon').removeClass('glyphicon-volume-off').addClass('glyphicon-music');
+     }
+     else if (changefrom == 'mute') {
+       $el.find('span.glyphicon').removeClass('glyphicon-music').addClass('glyphicon-volume-off');
+     }
+   } else {
+     $el.find('span.glyphicon').toggleClass('glyphicon-music glyphicon-volume-off');
+   }
+ }
+
 
  $(document).ready(function() {
    var socket = io.connect('http://' + document.domain + ':' + location.port);
    {% if showCanvas %}
    var ctx = document.getElementById('canvas').getContext('2d');
    {% endif %}
+
+   {% if showPlayerExtended %}
+   var airplay_volume_percent = 80;
+   let sync_volume_startup = true;
+
+   // Instantiate a slider
+   var volumeSlider = $("#slider_volume").bootstrapSlider({
+  	 min: 0,
+  	 max: 100,
+     step: 0.1,
+  	 value: airplay_volume_percent,
+     tooltip: "show",
+     tooltip_position: "top",
+	 handle: "round",
+   });
+
+   if (sync_volume_startup) {
+     // these cause volume status messages to be sent
+     socket.emit('remote_volumedown', {});
+     socket.emit('remote_volumeup', {});
+   }
+   {% endif %}
+
    var playstate = 'play';
+   var mutestate = 'unmute';
+   var seekstate = 'none';
 
    $("#coverart").attr("src", "{{ url_for('static', filename='default.png') }}" );
 
@@ -46,11 +90,21 @@
 
    // handle playing track info fields
    socket.on('playing_title', function(msg) {
-	 var nDate = new Date();
-     var hours = nDate.getHours(); var minutes = nDate.getMinutes();
-     var text_hours = pad('00', hours, true); var text_minutes = pad('00', minutes, true);
-     $('#updatedInfo').text(text_hours + ':' + text_minutes).html();
      $('#track').text(msg.data).html();
+     let format24 = false;
+     // fixme: https://github.com/idcrook/shairport-sync-mqtt-display/issues/16
+ 	 var nDate = new Date();
+     var hours = nDate.getHours(); var minutes = nDate.getMinutes();
+     var suffix = (hours >= 12)? 'pm' : 'am';
+     var text_hours = pad('00', hours, true);
+     var text_minutes = pad('00', minutes, true);
+     if (format24) {
+       suffix = '';
+     } else {
+       // convert to 12 hour format from 0-23
+       text_hours = ((hours + 11) % 12 + 1);
+     }
+     $('#updatedInfo').text(text_hours + ':' + text_minutes + suffix).html();
    });
    socket.on('playing_artist', function(msg) {
      $('#artist').text(msg.data).html();
@@ -66,6 +120,8 @@
      $("#coverart").attr("src","data:" + msg.mimetype + ";base64," + msg.data);
    });
 
+   // the following syncs state, but will resume playback even if paused
+   // socket.emit('remote_playresume', {});
 
    // button handlers
    $('#button_bw').on('click', function (e) {
@@ -97,25 +153,138 @@
      }
      console.log("button playpause pressed, playstate is "+playstate);
    });
+
+   {% if showPlayerExtended %}
+   // volume button handlers
+   $('#button_volumedown').on('click', function (e) {
+     console.log("button volumedown invoked.");
+     socket.emit('remote_volumedown', {});
+   });
+   $('#button_volumeup').on('click', function (e) {
+     console.log("button volumeup invoked.");
+     socket.emit('remote_volumeup', {});
+   });
+
+   $('#button_mute').on('click', function (e) {
+     change_mute_button_glyph(mutestate);
+     if (mutestate=='unmute') {
+       mutestate='mute';
+     } else {
+       mutestate='unmute';
+     }
+     socket.emit('remote_mutetoggle', {});
+     console.log("button mute invoked.");
+   });
+
+   {% if showPlayerShuffle %}
+   // shuffle_songs does not seem to work
+   $('#button_shuffle').on('click', function (e) {
+     //change_shuffle_button_glyph();
+     socket.emit('remote_shuffle_songs', {});
+
+     console.log("button shuffle invoked.");
+   });
+   {% endif %} // showPlayerShuffle
+
+   {% if showPlayerStop %}
    $('#button_stop').on('click', function (e) {
      if (playstate=='play') {
        socket.emit('remote_pause', {});
      }
      playstate='stop';
      change_playpause_button_glyph('play');
+     // remote_stop cannot be resumed
+     // socket.emit('remote_stop', {});
      console.log("button stop invoked.");
    });
+   {% endif %} // showPlayerStop
 
-   // these events come from shareport-sync
+   {% if showPlayerSeeking %}
+   /* https://nto.github.io/AirPlay.html#audio-remotecontrol */
+   $('#button_rewind').on('click', function (e) {
+     console.log("button rewind invoked.");
+     console.log("seekstate = " + seekstate);
+     //change_rewind_button_glyph(mutestate);
+     if (seekstate=='none') {
+       seekstate='rewind';
+       socket.emit('remote_beginrew', {});
+     } else if (seekstate=='rewind') { // already rewinding?
+       //seekstate='none';
+       socket.emit('remote_playresume', {});
+       // this should play after fast forward or rewind
+     } else if (seekstate=='fastforward') { // fast forwarding?
+       seekstate='rewind';
+       socket.emit('remote_beginrew', {});
+     }
+   });
+
+   $('#button_fastforward').on('click', function (e) {
+     console.log("button fastforward invoked.");
+     console.log("seekstate = " + seekstate);
+     //change_fastforward_button_glyph(seekstate);
+     if (seekstate=='none') {
+       seekstate='fastforward';
+       socket.emit('remote_beginff', {});
+     } else if (seekstate=='rewind') { // rewinding?
+       seekstate='fastforward';
+       socket.emit('remote_beginff', {}); // ???
+     } else if (seekstate=='fastforward') { // already fast forwarding?
+       //seekstate='none';
+       socket.emit('remote_playresume', {});
+       // this should play after fast forward or rewind
+     }
+   });
+
+   {% endif %} // showPlayerSeeking
+
+   // sync volume through successive remote commands
+   let seekVolumeDelayEach = 700;  // in milliseconds
+   function seekVolumeToLevel(requestedVolumeLevel) {
+     // within this tolerance, stop seeking
+     // A value of 3 should work here since the up/down movements resulting
+     // from remote commands are ~5% and 3 is 0.5 more than 5/2 (2.5)
+     let volume_tolerance = 3;
+
+     if (Math.abs(requestedVolumeLevel - airplay_volume_percent) > volume_tolerance) {
+       // increase volume
+       if ((requestedVolumeLevel - airplay_volume_percent) > 0) {
+         socket.emit('remote_volumeup', {});
+         setTimeout(seekVolumeToLevel, seekVolumeDelayEach, requestedVolumeLevel);
+       // decrease volume
+       } else {
+         socket.emit('remote_volumedown', {});
+         setTimeout(seekVolumeToLevel, seekVolumeDelayEach, requestedVolumeLevel);
+       }
+     }
+   }
+
+
+   volumeSlider.on('slide', function(slideEvt) {
+     console.log('slide');
+   });
+
+   volumeSlider.on('slideStop', function(slideEvt) {
+     let volumeLevel = slideEvt.value;
+     console.log('slideStop ' + volumeLevel);
+     // delay start of remote commands
+     setTimeout(seekVolumeToLevel, 100, volumeLevel);
+     //setTimeout(seekVolumeToLevel, seekVolumeDelayEach, volumeLevel);
+
+     seekVolumeToLevel(volumeLevel);
+   });
+
+   {% endif %} // showPlayerExtended
+
+   // these events come from shairport-sync
    socket.on('play_flush', function(msg) {
      console.log(msg)
-     // playstate='stop';
+     playstate='pause';
      change_playpause_button_glyph('play');
    });
    socket.on('play_end', function(msg) {
      console.log(msg)
      playstate='stop';
-     change_playpause_button_glyph('play');
+     change_playpause_button_glyph('stop');
    });
    socket.on('play_start', function(msg) {
      console.log(msg)
@@ -125,11 +294,19 @@
    socket.on('play_resume', function(msg) {
      console.log(msg)
      playstate='play';
+     seekstate='none';
      change_playpause_button_glyph('pause');
    });
+   {% if showPlayerExtended %}
+   socket.on('volume', function(msg) {
+     // CAUTION: this is a "global" variable
+     airplay_volume_percent = msg.data;      // msq.data should be integer in range (0-100)
+     console.log('volume_percent: ' + airplay_volume_percent)
+     let currentSliderVal = volumeSlider.bootstrapSlider('getValue');
+     volumeSlider.bootstrapSlider('setValue', airplay_volume_percent);
+   });
 
-
-
+   {% endif %} // showPlayerExtended
 
  });
 </script>
@@ -151,23 +328,55 @@
 
   {% if showUpdateInfo %} <div id="updateinfo">Song info updated <span id="updatedInfo"></span></div>  {% endif %}
 
-  <!-- <hr/> -->
   {% if showPlayer %}
   <div class="player text-center">
     <button type="button" id="button_bw" class="btn btn-lg btn-default">
+      <span class="glyphicon glyphicon-step-backward"></span>
+    </button>
+    {% if showPlayerSeeking %}
+    <button type="button" id="button_rewind" class="btn btn-lg btn-default">
       <span class="glyphicon glyphicon-backward"></span>
     </button>
+    {% endif %} <!-- showPlayerSeeking -->
     <button type="button" id="button_playpause" class="btn btn-lg btn-default">
       <span class="glyphicon glyphicon-pause"></span>
     </button>
+    {% if showPlayerSeeking %}
+    <button type="button" id="button_fastforward" class="btn btn-lg btn-default">
+      <span class="glyphicon glyphicon-forward"></span>
+    </button>
+    {% endif %} <!-- showPlayerSeeking -->
+    <button type="button" id="button_fw" class="btn btn-lg btn-default">
+      <span class="glyphicon glyphicon-step-forward"></span>
+    </button>
+  </div>
+  {% endif %} <!-- showPlayer -->
+  {% if showPlayerExtended %}
+  <div class="player text-center">
+    <button type="button" id="button_volumedown" class="btn btn-sm btn-link">
+      <span class="glyphicon glyphicon-volume-down"></span>
+    </button>
+    <input type="text" id="slider_volume">
+    <button type="button" id="button_volumeup" class="btn btn-sm btn-link">
+      <span class="glyphicon glyphicon-volume-up"></span>
+    </button>
+  </div>
+  <div class="player text-center">
+    <button type="button" id="button_mute" class="btn btn-lg btn-default">
+      <span class="glyphicon glyphicon-volume-off"></span>
+    </button>
+    {% if showPlayerShuffle %}
+    <button type="button" id="button_shuffle" class="btn btn-lg btn-default">
+      <span class="glyphicon glyphicon-random"></span>
+    </button>
+    {% endif %} <!-- showPlayerShuffle -->
+    {% if showPlayerStop %}
     <button type="button" id="button_stop" class="btn btn-lg btn-default">
       <span class="glyphicon glyphicon-stop"></span>
     </button>
-    <button type="button" id="button_fw" class="btn btn-lg btn-default">
-      <span class="glyphicon glyphicon-forward"></span>
-    </button>
+    {% endif %} <!-- showPlayerStop -->
   </div>
-  {% endif %}
+  {% endif %} <!-- showPlayerExtended -->
   {% if showCanvas %}
   <canvas id="canvas"></canvas>
   {% endif %}

@@ -51,13 +51,21 @@ app.config['SECRET_KEY'] = WEBSERVER_CONF.get('secret_key', 'secret!')
 socketio = SocketIO(app)
 
 known_play_metadata_types = {
-    'play_end': 'play_end',
+    'songalbum': 'songalbum',
+    'volume': 'volume',
+    'client_ip': 'client_ip',
+    'active_start': 'active_start',
+    'active_end': 'active_end',
     'play_start': 'play_start',
+    'play_end': 'play_end',
     'play_flush': 'play_flush',
-    'play_resume': 'play_resume'
+    'play_resume': 'play_resume',
 }
 
-known_track_metadata_types = {
+# Other known 'ssnc' include:
+#    'PICT': 'show'
+
+known_core_metadata_types = {
     'artist': 'showArtist',
     'album': 'showAlbum',
     'title': 'showTitle',
@@ -71,8 +79,20 @@ def populateTemplateData(config):
     Set default value if the key is not found in config (second arg in dict.get())"""
     templateData = {}
 
-    if config.get('show_player', False):
+    if config.get('show_player', True):
         templateData['showPlayer'] = True
+
+        if config.get('show_player_extended', False):
+            templateData['showPlayerExtended'] = True
+
+        if config.get('show_player_shuffle', False):
+            templateData['showPlayerShuffle'] = True
+
+        if config.get('show_player_seeking', False):
+            templateData['showPlayerSeeking'] = True
+
+        if config.get('show_player_stop', False):
+            templateData['showPlayerStop'] = True
 
     if config.get('show_canvas', False):
         templateData['showCanvas'] = True
@@ -91,8 +111,8 @@ def populateTemplateData(config):
             'track_metadata',
             ['artist', 'album', 'title'])  # defaults to these three
         for metadata_type in metadata_types:
-            if metadata_type in known_track_metadata_types:
-                templateData[known_track_metadata_types[metadata_type]] = True
+            if metadata_type in known_core_metadata_types:
+                templateData[known_core_metadata_types[metadata_type]] = True
 
     return templateData
 
@@ -132,7 +152,7 @@ def on_connect(client, userdata, flags, rc):
 
     # print("Connected with result code {}".format(rc))
 
-    subtopic_list = list(known_track_metadata_types.keys())
+    subtopic_list = list(known_core_metadata_types.keys())
     subtopic_list.extend(list(known_play_metadata_types.keys()))
 
     # if we are not showing cover art, do not subscribe to it
@@ -184,11 +204,48 @@ def _send_play_event(metadata_name):
     socketio.emit(metadata_name, metadata_name)
 
 
+# https://stackoverflow.com/a/1970037
+def make_interpolator(left_min, left_max, right_min, right_max):
+    # Figure out how 'wide' each range is
+    leftSpan = left_max - left_min
+    rightSpan = right_max - right_min
+
+    # Compute the scale factor between left and right values
+    scaleFactor = float(rightSpan) / float(leftSpan)
+
+    # create interpolation function using pre-calculated scaleFactor
+    def interp_fn(value):
+        return right_min + (value - left_min) * scaleFactor
+
+    return interp_fn
+
+# https://github.com/mikebrady/shairport-sync-metadata-reader/blob/master/README.md
+# sent as a string "airplay_volume,volume,lowest_volume,highest_volume"
+# - airplay_volume is 0.00 down to -30.00, with -144.00 meaning "mute"
+volume_scaler = make_interpolator(-30.0, 0, -0.5, 100.0)
+def _send_volume_event(metadata_name, message):
+    """Forms volume event message and sends to browser client using socket.io."""
+
+    print("{}".format(metadata_name))
+    (airplay_volume, volume, lowest_volume,
+     highest_volume) = message.payload.decode('ascii').split(',')
+    volume_as_percent = 0.0
+    try:
+        airplay_volume_float = float(airplay_volume)
+        volume_as_percent = volume_scaler(airplay_volume_float)
+    except ValueError:
+        volume_as_percent = 50.0
+
+    msg = {'data': int(volume_as_percent)}
+    socketio.emit(metadata_name, msg)
+
+
+
 def on_message(client, userdata, message):
     """Callback for when a subscribed-to MQTT message is received."""
 
-    # if message.topic != _form_subtopic_topic("cover"):
-    #     print(message.topic, message.payload)
+    if message.topic != _form_subtopic_topic("cover"):
+        print(message.topic, message.payload)
 
     # Playing track info fields
     if message.topic == _form_subtopic_topic("artist"):
@@ -209,6 +266,10 @@ def on_message(client, userdata, message):
         _send_play_event("play_flush")
     if message.topic == _form_subtopic_topic("play_resume"):
         _send_play_event("play_resume")
+
+    # volume
+    if message.topic == _form_subtopic_topic("volume"):
+        _send_volume_event("volume", message)
 
     # cover art
     if message.topic == _form_subtopic_topic("cover"):
@@ -324,8 +385,9 @@ def handle_nextitem(json):
 @socketio.on('remote_stop')
 def handle_stop(json):
     print('handle_stop', str(json))
+    print('WARNING: remote_stop cannot be resumed')
     (topic, msg) = _generate_remote_command('stop')
-    # mqttc.publish(topic, msg)
+    mqttc.publish(topic, msg)
 
 
 @socketio.on('remote_pause')
@@ -353,6 +415,48 @@ def handle_play(json):
 def handle_playresume(json):
     print('handle_playresume', str(json))
     (topic, msg) = _generate_remote_command('playresume')
+    mqttc.publish(topic, msg)
+
+
+@socketio.on('remote_mutetoggle')
+def handle_mutetoggle(json):
+    print('handle_mutetoggle', str(json))
+    (topic, msg) = _generate_remote_command('mutetoggle')
+    mqttc.publish(topic, msg)
+
+
+@socketio.on('remote_volumedown')
+def handle_beginrew(json):
+    print('handle_volumedown', str(json))
+    (topic, msg) = _generate_remote_command('volumedown')
+    mqttc.publish(topic, msg)
+
+
+@socketio.on('remote_volumeup')
+def handle_beginrew(json):
+    print('handle_volumeup', str(json))
+    (topic, msg) = _generate_remote_command('volumeup')
+    mqttc.publish(topic, msg)
+
+
+@socketio.on('remote_beginrew')
+def handle_beginrew(json):
+    print('handle_beginrew', str(json))
+    (topic, msg) = _generate_remote_command('beginrew')
+    mqttc.publish(topic, msg)
+
+
+@socketio.on('remote_beginff')
+def handle_beginff(json):
+    print('handle_beginff', str(json))
+    (topic, msg) = _generate_remote_command('beginff')
+    mqttc.publish(topic, msg)
+
+
+@socketio.on('remote_shuffle_songs')
+def handle_shuffle_songs(json):
+    print('handle_shuffle_songs', str(json))
+    (topic, msg) = _generate_remote_command('shuffle_songs')
     mqttc.publish(topic, msg)
 
 

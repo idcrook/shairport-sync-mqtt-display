@@ -1,4 +1,4 @@
-![Safari screencap](screenshot1.png)
+![Safari screencap - Dark mode on iPhone SE](screenshot1.png "Dark mode on iPhone SE")
 
 `python-flask-socketio-server` works in conjunction with [`shairport-sync`](https://github.com/mikebrady/shairport-sync) to host a webapp that displays Airplay®<sup id="a1">[1](#f1)</sup> track metadata. It has remote-control support and works great on mobile browsers.
 

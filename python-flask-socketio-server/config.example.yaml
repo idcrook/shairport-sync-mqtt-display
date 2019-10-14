@@ -20,6 +20,10 @@ webui:
   show_player: true
   show_artwork: true
   artwork_rounded_corners: true
+  show_player_extended: true  # volume+slider and mute
+  show_player_shuffle: false
+  show_player_seeking: false
+  show_player_stop: true
   show_track_metadata: true
   track_metadata:
     - artist
