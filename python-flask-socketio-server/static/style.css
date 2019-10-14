@@ -85,7 +85,7 @@ const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-schem
       color: lavender;
   }
   #genre {
-      color: rebeccapurple;
+      color: deeppink;
   }
   #updateinfo {
       /* color: steelblue; */
