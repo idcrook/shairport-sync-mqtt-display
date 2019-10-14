@@ -385,6 +385,7 @@ def handle_nextitem(json):
 @socketio.on('remote_stop')
 def handle_stop(json):
     print('handle_stop', str(json))
+    print('WARNING: remote_stop cannot be resumed')
     (topic, msg) = _generate_remote_command('stop')
     mqttc.publish(topic, msg)
 
