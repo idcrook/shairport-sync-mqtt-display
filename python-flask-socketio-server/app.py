@@ -219,7 +219,7 @@ def make_interpolator(left_min, left_max, right_min, right_max):
 
     return interp_fn
 
-
+# https://github.com/mikebrady/shairport-sync-metadata-reader/blob/master/README.md
 # sent as a string "airplay_volume,volume,lowest_volume,highest_volume"
 # - airplay_volume is 0.00 down to -30.00, with -144.00 meaning "mute"
 volume_scaler = make_interpolator(-30.0, 0, -0.5, 100.0)
@@ -386,7 +386,7 @@ def handle_nextitem(json):
 def handle_stop(json):
     print('handle_stop', str(json))
     (topic, msg) = _generate_remote_command('stop')
-    # mqttc.publish(topic, msg)
+    mqttc.publish(topic, msg)
 
 
 @socketio.on('remote_pause')

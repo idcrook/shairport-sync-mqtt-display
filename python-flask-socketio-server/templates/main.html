@@ -145,14 +145,6 @@
      }
      console.log("button playpause pressed, playstate is "+playstate);
    });
-   $('#button_stop').on('click', function (e) {
-     if (playstate=='play') {
-       socket.emit('remote_pause', {});
-     }
-     playstate='stop';
-     change_playpause_button_glyph('play');
-     console.log("button stop invoked.");
-   });
 
    {% if showPlayerExtended %}
    $('#button_mute').on('click', function (e) {
@@ -178,9 +170,14 @@
    {% endif %} // showPlayerShuffle
 
    {% if showPlayerStop %}
-   // shuffle_songs does not seem to work
    $('#button_stop').on('click', function (e) {
-     socket.emit('remote_stop', {});
+     if (playstate=='play') {
+       socket.emit('remote_pause', {});
+     }
+     playstate='stop';
+     change_playpause_button_glyph('play');
+     // remote_stop cannot be resumed
+     // socket.emit('remote_stop', {});
      console.log("button stop invoked.");
    });
    {% endif %} // showPlayerStop
@@ -262,7 +259,7 @@
      console.log('volume_percent: ' + airplay_volume)
      let currentSliderVal = volumeSlider.bootstrapSlider('getValue');
      // FIXME: sync volume through remote commands
-     // volumeSlider.bootstrapSlider('setValue', airplay_volume);
+     volumeSlider.bootstrapSlider('setValue', airplay_volume);
    });
    {% endif %} // showPlayerExtended
 
