@@ -11,7 +11,7 @@ Utilities to display [`shairport-sync`](https://github.com/mikebrady/shairport-s
 -	Support for mobile browsers. Webapp manifest.
 -	Playback controls.
 
-![Screenshot - Dark mode on iPhone SE](python-flask-socketio-server/screenshot1.png "Dark mode on iPhone SE")
+![Screenshot - Opposing screenshots in dark mode and light mode](python-flask-socketio-server/framed_screenshots.png "Dark mode and Light mode on iPhone 11 Pro")
 
 ### Display on 16x2 Character LCD
 
