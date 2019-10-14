@@ -57,17 +57,25 @@
    {% endif %}
 
    {% if showPlayerExtended %}
+   var airplay_volume_percent = 80;
+   let sync_volume_startup = true;
+
    // Instantiate a slider
    var volumeSlider = $("#slider_volume").bootstrapSlider({
   	 min: 0,
   	 max: 100,
      step: 0.1,
-  	 value: 80,
+  	 value: airplay_volume_percent,
      tooltip: "show",
      tooltip_position: "top",
 	 handle: "round",
    });
 
+   if (sync_volume_startup) {
+     // these cause volume status messages to be sent
+     socket.emit('remote_volumedown', {});
+     socket.emit('remote_volumeup', {});
+   }
    {% endif %}
 
    var playstate = 'play';
@@ -165,7 +173,6 @@
        mutestate='unmute';
      }
      socket.emit('remote_mutetoggle', {});
-
      console.log("button mute invoked.");
    });
 
@@ -230,12 +237,40 @@
 
    {% endif %} // showPlayerSeeking
 
+   // sync volume through successive remote commands
+   let seekVolumeDelayEach = 700;  // in milliseconds
+   function seekVolumeToLevel(requestedVolumeLevel) {
+     // within this tolerance, stop seeking
+     // A value of 3 should work here since the up/down movements resulting
+     // from remote commands are ~5% and 3 is 0.5 more than 5/2 (2.5)
+     let volume_tolerance = 3;
+
+     if (Math.abs(requestedVolumeLevel - airplay_volume_percent) > volume_tolerance) {
+       // increase volume
+       if ((requestedVolumeLevel - airplay_volume_percent) > 0) {
+         socket.emit('remote_volumeup', {});
+         setTimeout(seekVolumeToLevel, seekVolumeDelayEach, requestedVolumeLevel);
+       // decrease volume
+       } else {
+         socket.emit('remote_volumedown', {});
+         setTimeout(seekVolumeToLevel, seekVolumeDelayEach, requestedVolumeLevel);
+       }
+     }
+   }
+
+
    volumeSlider.on('slide', function(slideEvt) {
-     //console.log('slide');
+     console.log('slide');
    });
 
    volumeSlider.on('slideStop', function(slideEvt) {
-     console.log('slideStop ' + slideEvt.value);
+     let volumeLevel = slideEvt.value;
+     console.log('slideStop ' + volumeLevel);
+     // delay start of remote commands
+     setTimeout(seekVolumeToLevel, 100, volumeLevel);
+     //setTimeout(seekVolumeToLevel, seekVolumeDelayEach, volumeLevel);
+
+     seekVolumeToLevel(volumeLevel);
    });
 
    {% endif %} // showPlayerExtended
@@ -264,16 +299,14 @@
    });
    {% if showPlayerExtended %}
    socket.on('volume', function(msg) {
-     // should be integer in range (0-100)
-     let airplay_volume = msg.data;
-     console.log('volume_percent: ' + airplay_volume)
+     // CAUTION: this is a "global" variable
+     airplay_volume_percent = msg.data;      // msq.data should be integer in range (0-100)
+     console.log('volume_percent: ' + airplay_volume_percent)
      let currentSliderVal = volumeSlider.bootstrapSlider('getValue');
-     // FIXME: sync volume through remote commands
-     volumeSlider.bootstrapSlider('setValue', airplay_volume);
+     volumeSlider.bootstrapSlider('setValue', airplay_volume_percent);
    });
+
    {% endif %} // showPlayerExtended
-
-
 
  });
 </script>
