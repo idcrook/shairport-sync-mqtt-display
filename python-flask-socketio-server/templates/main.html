@@ -255,7 +255,16 @@
      seekstate='none';
      change_playpause_button_glyph('pause');
    });
-
+   {% if showPlayerExtended %}
+   socket.on('volume', function(msg) {
+     // should be integer in range (0-100)
+     let airplay_volume = msg.data;
+     console.log('volume_percent: ' + airplay_volume)
+     let currentSliderVal = volumeSlider.bootstrapSlider('getValue');
+     // FIXME: sync volume through remote commands
+     // volumeSlider.bootstrapSlider('setValue', airplay_volume);
+   });
+   {% endif %} // showPlayerExtended
 
 
 
