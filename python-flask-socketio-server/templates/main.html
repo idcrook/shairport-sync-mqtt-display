@@ -236,16 +236,18 @@
    {% endif %} // showPlayerSeeking
 
    // sync volume through successive remote commands
-   var seekVolumeDelayEach = 700;  // constant. in milliseconds
-   function seekVolumeToLevel(requestedVolumeLevel, reset) {
-     // within this tolerance, stop seeking
-     // A value of 3 should work here since the up/down movements resulting
-     // from remote commands are ~5% and 3 is 0.5 more than 5/2 (2.5)
-     var volume_tolerance = 3; // constant
+   var seekVolumeDelayEach = 700;  // constant
+
+   // within this tolerance, stop seeking
+   // A value of 3 should work here since the up/down movements resulting
+   // from remote commands are ~5% and 3 is 0.5 more than 5/2 (2.5)
+   var volume_tolerance = 3; // constant
+
+   function seekVolumeToLevel(requestedVolumeLevel) {
+     console.log(volumesliderstate + " to level " + requestedVolumeLevel);
 
      var needToSeek = Math.abs(requestedVolumeLevel - airplay_volume_percent) > volume_tolerance;
-
-     if (needToSeek && !reset) {
+     if (needToSeek) {
        if ((requestedVolumeLevel - airplay_volume_percent) > 0) {
          socket.emit('remote_volumeup', {});
          setTimeout(seekVolumeToLevel, seekVolumeDelayEach, requestedVolumeLevel);
@@ -253,12 +255,12 @@
          socket.emit('remote_volumedown', {});
          setTimeout(seekVolumeToLevel, seekVolumeDelayEach, requestedVolumeLevel);
        }
-       volumesliderstate = 'seeking';
      } else {
        volumesliderstate = 'none';
+       // re-enable once seek is complete
+       volumeSlider.bootstrapSlider('enable');
      }
    }
-
 
    volumeSlider.on('slide', function(slideEvt) {
      console.log('slide');
@@ -269,11 +271,10 @@
      console.log('slideStop ' + volumeLevel);
 
      if (volumesliderstate == 'none') {
-       // delay start of remote commands
-       setTimeout(seekVolumeToLevel, 100, volumeLevel);
-     } else {
-       // give ten seconds to settle
-       // setTimeout(seekVolumeToLevel, 10000, volumeLevel);
+       // disable while seeking
+       volumesliderstate = 'seeking';
+       volumeSlider.bootstrapSlider('disable');
+       seekVolumeToLevel(volumeLevel);
      }
    });
 
