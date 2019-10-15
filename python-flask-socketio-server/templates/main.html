@@ -58,14 +58,14 @@
 
    {% if showPlayerExtended %}
    var airplay_volume_percent = 80;
-   let sync_volume_startup = true;
+   var sync_volume_startup = true; // constant. this is used as a flag
 
    // Instantiate a slider
    var volumeSlider = $("#slider_volume").bootstrapSlider({
   	 min: 0,
   	 max: 100,
-     step: 0.1,
-  	 value: airplay_volume_percent,
+     step: 0.5,
+  	 value: 50,
      tooltip: "show",
      tooltip_position: "top",
 	 handle: "round",
@@ -81,6 +81,7 @@
    var playstate = 'play';
    var mutestate = 'unmute';
    var seekstate = 'none';
+   var volumesliderstate = 'none';
 
    $("#coverart").attr("src", "{{ url_for('static', filename='default.png') }}" );
 
@@ -91,7 +92,7 @@
    // handle playing track info fields
    socket.on('playing_title', function(msg) {
      $('#track').text(msg.data).html();
-     let format24 = false;
+     var format24 = false;  // constant
      // fixme: https://github.com/idcrook/shairport-sync-mqtt-display/issues/16
  	 var nDate = new Date();
      var hours = nDate.getHours(); var minutes = nDate.getMinutes();
@@ -119,9 +120,6 @@
    socket.on('cover_art', function(msg) {
      $("#coverart").attr("src","data:" + msg.mimetype + ";base64," + msg.data);
    });
-
-   // the following syncs state, but will resume playback even if paused
-   // socket.emit('remote_playresume', {});
 
    // button handlers
    $('#button_bw').on('click', function (e) {
@@ -238,23 +236,26 @@
    {% endif %} // showPlayerSeeking
 
    // sync volume through successive remote commands
-   let seekVolumeDelayEach = 700;  // in milliseconds
-   function seekVolumeToLevel(requestedVolumeLevel) {
+   var seekVolumeDelayEach = 700;  // constant. in milliseconds
+   function seekVolumeToLevel(requestedVolumeLevel, reset) {
      // within this tolerance, stop seeking
      // A value of 3 should work here since the up/down movements resulting
      // from remote commands are ~5% and 3 is 0.5 more than 5/2 (2.5)
-     let volume_tolerance = 3;
+     var volume_tolerance = 3; // constant
 
-     if (Math.abs(requestedVolumeLevel - airplay_volume_percent) > volume_tolerance) {
-       // increase volume
+     var needToSeek = Math.abs(requestedVolumeLevel - airplay_volume_percent) > volume_tolerance;
+
+     if (needToSeek && !reset) {
        if ((requestedVolumeLevel - airplay_volume_percent) > 0) {
          socket.emit('remote_volumeup', {});
          setTimeout(seekVolumeToLevel, seekVolumeDelayEach, requestedVolumeLevel);
-       // decrease volume
        } else {
          socket.emit('remote_volumedown', {});
          setTimeout(seekVolumeToLevel, seekVolumeDelayEach, requestedVolumeLevel);
        }
+       volumesliderstate = 'seeking';
+     } else {
+       volumesliderstate = 'none';
      }
    }
 
@@ -264,13 +265,16 @@
    });
 
    volumeSlider.on('slideStop', function(slideEvt) {
-     let volumeLevel = slideEvt.value;
+     var volumeLevel = slideEvt.value;
      console.log('slideStop ' + volumeLevel);
-     // delay start of remote commands
-     setTimeout(seekVolumeToLevel, 100, volumeLevel);
-     //setTimeout(seekVolumeToLevel, seekVolumeDelayEach, volumeLevel);
 
-     seekVolumeToLevel(volumeLevel);
+     if (volumesliderstate == 'none') {
+       // delay start of remote commands
+       setTimeout(seekVolumeToLevel, 100, volumeLevel);
+     } else {
+       // give ten seconds to settle
+       // setTimeout(seekVolumeToLevel, 10000, volumeLevel);
+     }
    });
 
    {% endif %} // showPlayerExtended
@@ -299,10 +303,9 @@
    });
    {% if showPlayerExtended %}
    socket.on('volume', function(msg) {
-     // CAUTION: this is a "global" variable
+     // CAUTION: "global" variable
      airplay_volume_percent = msg.data;      // msq.data should be integer in range (0-100)
      console.log('volume_percent: ' + airplay_volume_percent)
-     let currentSliderVal = volumeSlider.bootstrapSlider('getValue');
      volumeSlider.bootstrapSlider('setValue', airplay_volume_percent);
    });
 
