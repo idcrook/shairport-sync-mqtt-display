@@ -19,7 +19,7 @@ from yaml import safe_load
 mypath = Path().absolute()
 
 # Load a default image file
-default_image_file = mypath / "static" / "default.png"
+default_image_file = mypath / "static" / "img" / "default.png"
 print("Using default cover image file {}".format(default_image_file))
 default_image_mime_type = 'image/png'
 default_image_b64_str = ''
@@ -345,7 +345,7 @@ def main():
 def favicon():
     """Handle favicon.ico requests."""
     return send_from_directory(os.path.join(app.root_path, 'static'),
-                               'favicon.ico',
+                               'img/favicon.ico',
                                mimetype='image/vnd.microsoft.icon')
 
 

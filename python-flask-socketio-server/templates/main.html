@@ -83,7 +83,7 @@
    var seekstate = 'none';
    var volumesliderstate = 'none';
 
-   $("#coverart").attr("src", "{{ url_for('static', filename='default.png') }}" );
+   $("#coverart").attr("src", "{{ url_for('static', filename='img/default.png') }}" );
 
    socket.on('connect', function() {
      socket.emit('myevent', {data: 'connected!'});
