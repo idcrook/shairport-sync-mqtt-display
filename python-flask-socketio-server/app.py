@@ -21,11 +21,11 @@ mypath = Path().absolute()
 # Load a default image file
 default_image_file = mypath / "static" / "img" / "default.png"
 print("Using default cover image file {}".format(default_image_file))
-default_image_mime_type = 'image/png'
-default_image_b64_str = ''
+default_image_mime_type = "image/png"
+default_image_b64_str = ""
 with default_image_file.open("rb") as imageFile:
     image_octets = imageFile.read()
-    default_image_b64_str = base64.b64encode(image_octets).decode('utf-8')
+    default_image_b64_str = base64.b64encode(image_octets).decode("utf-8")
 
 # App will die here if config file is missing.
 # Read only on startup. If edited, app must be relaunched to see changes
@@ -35,41 +35,41 @@ with config_file.open() as f:
     config = safe_load(f)
 
 # subtrees of the config file
-MQTT_CONF = config['mqtt']  # required section
-WEBSERVER_CONF = config['web_server']  # required section
-WEBUI_CONF = config.get('webui', {})  # if missing, assume defaults
+MQTT_CONF = config["mqtt"]  # required section
+WEBSERVER_CONF = config["web_server"]  # required section
+WEBUI_CONF = config.get("webui", {})  # if missing, assume defaults
 
 # "base" topic - should match shairport-sync.conf {mqtt.topic}
-TOPIC_ROOT = MQTT_CONF['topic']
+TOPIC_ROOT = MQTT_CONF["topic"]
 print(TOPIC_ROOT)
 
 # this variable will keep the most recent track info pieces sent to socketio
 SAVED_INFO = {}
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = WEBSERVER_CONF.get('secret_key', 'secret!')
+app.config["SECRET_KEY"] = WEBSERVER_CONF.get("secret_key", "secret!")
 socketio = SocketIO(app)
 
 known_play_metadata_types = {
-    'songalbum': 'songalbum',
-    'volume': 'volume',
-    'client_ip': 'client_ip',
-    'active_start': 'active_start',
-    'active_end': 'active_end',
-    'play_start': 'play_start',
-    'play_end': 'play_end',
-    'play_flush': 'play_flush',
-    'play_resume': 'play_resume',
+    "songalbum": "songalbum",
+    "volume": "volume",
+    "client_ip": "client_ip",
+    "active_start": "active_start",
+    "active_end": "active_end",
+    "play_start": "play_start",
+    "play_end": "play_end",
+    "play_flush": "play_flush",
+    "play_resume": "play_resume",
 }
 
 # Other known 'ssnc' include:
 #    'PICT': 'show'
 
 known_core_metadata_types = {
-    'artist': 'showArtist',
-    'album': 'showAlbum',
-    'title': 'showTitle',
-    'genre': 'showGenre'
+    "artist": "showArtist",
+    "album": "showAlbum",
+    "title": "showTitle",
+    "genre": "showGenre",
 }
 
 
@@ -79,37 +79,37 @@ def populateTemplateData(config):
     Set default value if the key is not found in config (second arg in dict.get())"""
     templateData = {}
 
-    if config.get('show_player', True):
-        templateData['showPlayer'] = True
+    if config.get("show_player", True):
+        templateData["showPlayer"] = True
 
-        if config.get('show_player_extended', False):
-            templateData['showPlayerExtended'] = True
+        if config.get("show_player_extended", False):
+            templateData["showPlayerExtended"] = True
 
-        if config.get('show_player_shuffle', False):
-            templateData['showPlayerShuffle'] = True
+        if config.get("show_player_shuffle", False):
+            templateData["showPlayerShuffle"] = True
 
-        if config.get('show_player_seeking', False):
-            templateData['showPlayerSeeking'] = True
+        if config.get("show_player_seeking", False):
+            templateData["showPlayerSeeking"] = True
 
-        if config.get('show_player_stop', False):
-            templateData['showPlayerStop'] = True
+        if config.get("show_player_stop", False):
+            templateData["showPlayerStop"] = True
 
-    if config.get('show_canvas', False):
-        templateData['showCanvas'] = True
+    if config.get("show_canvas", False):
+        templateData["showCanvas"] = True
 
-    if config.get('show_update_info', True):
-        templateData['showUpdateInfo'] = True
+    if config.get("show_update_info", True):
+        templateData["showUpdateInfo"] = True
 
-    if config.get('show_artwork', True):
-        templateData['showCoverArt'] = True
+    if config.get("show_artwork", True):
+        templateData["showCoverArt"] = True
 
-    if config.get('artwork_rounded_corners', False):
-        templateData['showCoverArtRoundedCorners'] = True
+    if config.get("artwork_rounded_corners", False):
+        templateData["showCoverArtRoundedCorners"] = True
 
-    if config.get('show_track_metadata', True):
+    if config.get("show_track_metadata", True):
         metadata_types = config.get(
-            'track_metadata',
-            ['artist', 'album', 'title'])  # defaults to these three
+            "track_metadata", ["artist", "album", "title"]
+        )  # defaults to these three
         for metadata_type in metadata_types:
             if metadata_type in known_core_metadata_types:
                 templateData[known_core_metadata_types[metadata_type]] = True
@@ -125,9 +125,20 @@ def _form_subtopic_topic(subtopic):
 
 # Available commands listed in shairport-sync.conf
 known_remote_commands = [
-    "command", "beginff", "beginrew", "mutetoggle", "nextitem", "previtem",
-    "pause", "playpause", "play", "stop", "playresume", "shuffle_songs",
-    "volumedown", "volumeup"
+    "command",
+    "beginff",
+    "beginrew",
+    "mutetoggle",
+    "nextitem",
+    "previtem",
+    "pause",
+    "playpause",
+    "play",
+    "stop",
+    "playresume",
+    "shuffle_songs",
+    "volumedown",
+    "volumeup",
 ]
 
 
@@ -140,7 +151,7 @@ def _generate_remote_command(command):
         msg = command
         return topic, msg
     else:
-        raise ValueError('Unknown remote command: {}'.format(command))
+        raise ValueError("Unknown remote command: {}".format(command))
 
 
 def on_connect(client, userdata, flags, rc):
@@ -156,12 +167,12 @@ def on_connect(client, userdata, flags, rc):
     subtopic_list.extend(list(known_play_metadata_types.keys()))
 
     # if we are not showing cover art, do not subscribe to it
-    if (populateTemplateData(WEBUI_CONF)).get('showCoverArt'):
-        subtopic_list.append('cover')
+    if (populateTemplateData(WEBUI_CONF)).get("showCoverArt"):
+        subtopic_list.append("cover")
 
     for subtopic in subtopic_list:
         topic = _form_subtopic_topic(subtopic)
-        print("topic", topic, end=' ')
+        print("topic", topic, end=" ")
         (result, msg_id) = client.subscribe(topic, 0)  # QoS==0 should be fine
         print(msg_id)
 
@@ -169,10 +180,10 @@ def on_connect(client, userdata, flags, rc):
 def _guessImageMime(magic):
     """Peeks at leading bytes in binary object to identify image format."""
 
-    if magic.startswith(b'\xff\xd8'):
-        return 'image/jpeg'
-    elif magic.startswith(b'\x89PNG\r\n\x1a\r'):
-        return 'image/png'
+    if magic.startswith(b"\xff\xd8"):
+        return "image/jpeg"
+    elif magic.startswith(b"\x89PNG\r\n\x1a\r"):
+        return "image/png"
     else:
         return "image/jpg"
 
@@ -191,7 +202,7 @@ def _send_and_store_playing_metadata(metadata_name, message):
     """
 
     # print("{} update".format(metadata_name))
-    msg = {'data': message.payload.decode('utf8')}
+    msg = {"data": message.payload.decode("utf8")}
     emitted_metadata_name = "playing_{}".format(metadata_name)
     SAVED_INFO[emitted_metadata_name] = msg
     socketio.emit(emitted_metadata_name, msg)
@@ -219,16 +230,20 @@ def make_interpolator(left_min, left_max, right_min, right_max):
 
     return interp_fn
 
+
 # https://github.com/mikebrady/shairport-sync-metadata-reader/blob/master/README.md
 # sent as a string "airplay_volume,volume,lowest_volume,highest_volume"
 # - airplay_volume is 0.00 down to -30.00, with -144.00 meaning "mute"
 volume_scaler = make_interpolator(-30.0, 0, -0.5, 100.0)
+
+
 def _send_volume_event(metadata_name, message):
     """Forms volume event message and sends to browser client using socket.io."""
 
     print("{}".format(metadata_name))
-    (airplay_volume, volume, lowest_volume,
-     highest_volume) = message.payload.decode('ascii').split(',')
+    (airplay_volume, volume, lowest_volume, highest_volume) = message.payload.decode(
+        "ascii"
+    ).split(",")
     volume_as_percent = 0.0
     try:
         airplay_volume_float = float(airplay_volume)
@@ -236,9 +251,8 @@ def _send_volume_event(metadata_name, message):
     except ValueError:
         volume_as_percent = 50.0
 
-    msg = {'data': int(volume_as_percent)}
+    msg = {"data": int(volume_as_percent)}
     socketio.emit(metadata_name, msg)
-
 
 
 def on_message(client, userdata, message):
@@ -276,13 +290,13 @@ def on_message(client, userdata, message):
         # print("cover update")
         if message.payload:
             mime_type = _guessImageMime(message.payload)
-            image_b64_str = base64.b64encode(message.payload).decode('utf-8')
+            image_b64_str = base64.b64encode(message.payload).decode("utf-8")
         else:
             mime_type = default_image_mime_type
             image_b64_str = default_image_b64_str
-        msg = {'data': image_b64_str, 'mimetype': mime_type}
-        SAVED_INFO['cover_art'] = msg
-        socketio.emit('cover_art', msg)
+        msg = {"data": image_b64_str, "mimetype": mime_type}
+        SAVED_INFO["cover_art"] = msg
+        socketio.emit("cover_art", msg)
 
 
 # Configure MQTT broker connection
@@ -292,40 +306,42 @@ mqttc = mqtt.Client()
 mqttc.on_connect = on_connect
 mqttc.on_message = on_message
 
-if MQTT_CONF.get('use_tls'):
-    tls_conf = MQTT_CONF.get('tls')
+if MQTT_CONF.get("use_tls"):
+    tls_conf = MQTT_CONF.get("tls")
     print("Using TLS config", tls_conf)
     # assumes full valid TLS configuration for paho lib
     if tls_conf:
-        mqttc.tls_set(ca_certs=tls_conf['ca_certs_path'],
-                      certfile=tls_conf['certfile_path'],
-                      keyfile=tls_conf['keyfile_path'],
-                      cert_reqs=ssl.CERT_REQUIRED,
-                      tls_version=ssl.PROTOCOL_TLSv1_2,
-                      ciphers=None)
+        mqttc.tls_set(
+            ca_certs=tls_conf["ca_certs_path"],
+            certfile=tls_conf["certfile_path"],
+            keyfile=tls_conf["keyfile_path"],
+            cert_reqs=ssl.CERT_REQUIRED,
+            tls_version=ssl.PROTOCOL_TLSv1_2,
+            ciphers=None,
+        )
 
-        if tls_conf.get('allow_insecure_server_certificate', False):
+        if tls_conf.get("allow_insecure_server_certificate", False):
             # from docs: Do not use this function in a real system. Setting value
             # to True means there is no point using encryption.
             mqttc.tls_insecure_set(True)
 
-if MQTT_CONF.get('username'):
-    username = MQTT_CONF.get('username')
+if MQTT_CONF.get("username"):
+    username = MQTT_CONF.get("username")
     print("MQTT username:", username)
-    pw = MQTT_CONF.get('password')
+    pw = MQTT_CONF.get("password")
     if pw:
         mqttc.username_pw_set(username, password=pw)
     else:
         mqttc.username_pw_set(username)
 
-if MQTT_CONF.get('logger'):
-    print('Enabling MQTT logging')
+if MQTT_CONF.get("logger"):
+    print("Enabling MQTT logging")
     mqttc.enable_logger()
 
 # Launch MQTT broker connection
-mqtt_host = MQTT_CONF['host']
-mqtt_port = MQTT_CONF['port']
-print("Connecting to broker", mqtt_host, 'port', mqtt_port)
+mqtt_host = MQTT_CONF["host"]
+mqtt_port = MQTT_CONF["port"]
+print("Connecting to broker", mqtt_host, "port", mqtt_port)
 mqttc.connect(mqtt_host, port=mqtt_port)
 # loop_start run a thread in the background
 mqttc.loop_start()
@@ -336,20 +352,20 @@ templateData = populateTemplateData(WEBUI_CONF)
 # Define Flask server routes
 @app.route("/")
 def main():
-    return render_template('main.html',
-                           async_mode=socketio.async_mode,
-                           **templateData)
+    return render_template("main.html", async_mode=socketio.async_mode, **templateData)
 
 
-@app.route('/favicon.ico')
+@app.route("/favicon.ico")
 def favicon():
     """Handle favicon.ico requests."""
-    return send_from_directory(os.path.join(app.root_path, 'static'),
-                               'img/favicon.ico',
-                               mimetype='image/vnd.microsoft.icon')
+    return send_from_directory(
+        os.path.join(app.root_path, "static"),
+        "img/favicon.ico",
+        mimetype="image/vnd.microsoft.icon",
+    )
 
 
-@socketio.on('myevent')
+@socketio.on("myevent")
 def handle_my_custom_event(json):
     """Re-send now playing info.
 
@@ -358,113 +374,113 @@ def handle_my_custom_event(json):
 
     """
     # print('received data: ' + str(json))
-    if json.get('data'):
-        print("myevent:", json['data'])
+    if json.get("data"):
+        print("myevent:", json["data"])
 
     for key, msg in SAVED_INFO.items():
         # print(key, msg)
-        print(key, )
+        print(key,)
         socketio.emit(key, msg)
 
 
-@socketio.on('remote_previtem')
+@socketio.on("remote_previtem")
 def handle_previtem(json):
-    print('handle_previtem', str(json))
-    (topic, msg) = _generate_remote_command('previtem')
+    print("handle_previtem", str(json))
+    (topic, msg) = _generate_remote_command("previtem")
     mqttc.publish(topic, msg)
 
 
-@socketio.on('remote_nextitem')
+@socketio.on("remote_nextitem")
 def handle_nextitem(json):
-    print('handle_nextitem', str(json))
-    (topic, msg) = _generate_remote_command('nextitem')
+    print("handle_nextitem", str(json))
+    (topic, msg) = _generate_remote_command("nextitem")
     mqttc.publish(topic, msg)
 
 
 # what 'stop' does is not desired; cannot be resumed
-@socketio.on('remote_stop')
+@socketio.on("remote_stop")
 def handle_stop(json):
-    print('handle_stop', str(json))
-    print('WARNING: remote_stop cannot be resumed')
-    (topic, msg) = _generate_remote_command('stop')
+    print("handle_stop", str(json))
+    print("WARNING: remote_stop cannot be resumed")
+    (topic, msg) = _generate_remote_command("stop")
     mqttc.publish(topic, msg)
 
 
-@socketio.on('remote_pause')
+@socketio.on("remote_pause")
 def handle_pause(json):
-    print('handle_pause', str(json))
-    (topic, msg) = _generate_remote_command('pause')
+    print("handle_pause", str(json))
+    (topic, msg) = _generate_remote_command("pause")
     mqttc.publish(topic, msg)
 
 
-@socketio.on('remote_playpause')
+@socketio.on("remote_playpause")
 def handle_playpause(json):
-    print('handle_playpause', str(json))
-    (topic, msg) = _generate_remote_command('playpause')
+    print("handle_playpause", str(json))
+    (topic, msg) = _generate_remote_command("playpause")
     mqttc.publish(topic, msg)
 
 
-@socketio.on('remote_play')
+@socketio.on("remote_play")
 def handle_play(json):
-    print('handle_play', str(json))
-    (topic, msg) = _generate_remote_command('play')
+    print("handle_play", str(json))
+    (topic, msg) = _generate_remote_command("play")
     mqttc.publish(topic, msg)
 
 
-@socketio.on('remote_playresume')
+@socketio.on("remote_playresume")
 def handle_playresume(json):
-    print('handle_playresume', str(json))
-    (topic, msg) = _generate_remote_command('playresume')
+    print("handle_playresume", str(json))
+    (topic, msg) = _generate_remote_command("playresume")
     mqttc.publish(topic, msg)
 
 
-@socketio.on('remote_mutetoggle')
+@socketio.on("remote_mutetoggle")
 def handle_mutetoggle(json):
-    print('handle_mutetoggle', str(json))
-    (topic, msg) = _generate_remote_command('mutetoggle')
+    print("handle_mutetoggle", str(json))
+    (topic, msg) = _generate_remote_command("mutetoggle")
     mqttc.publish(topic, msg)
 
 
-@socketio.on('remote_volumedown')
+@socketio.on("remote_volumedown")
 def handle_beginrew(json):
-    print('handle_volumedown', str(json))
-    (topic, msg) = _generate_remote_command('volumedown')
+    print("handle_volumedown", str(json))
+    (topic, msg) = _generate_remote_command("volumedown")
     mqttc.publish(topic, msg)
 
 
-@socketio.on('remote_volumeup')
+@socketio.on("remote_volumeup")
 def handle_beginrew(json):
-    print('handle_volumeup', str(json))
-    (topic, msg) = _generate_remote_command('volumeup')
+    print("handle_volumeup", str(json))
+    (topic, msg) = _generate_remote_command("volumeup")
     mqttc.publish(topic, msg)
 
 
-@socketio.on('remote_beginrew')
+@socketio.on("remote_beginrew")
 def handle_beginrew(json):
-    print('handle_beginrew', str(json))
-    (topic, msg) = _generate_remote_command('beginrew')
+    print("handle_beginrew", str(json))
+    (topic, msg) = _generate_remote_command("beginrew")
     mqttc.publish(topic, msg)
 
 
-@socketio.on('remote_beginff')
+@socketio.on("remote_beginff")
 def handle_beginff(json):
-    print('handle_beginff', str(json))
-    (topic, msg) = _generate_remote_command('beginff')
+    print("handle_beginff", str(json))
+    (topic, msg) = _generate_remote_command("beginff")
     mqttc.publish(topic, msg)
 
 
-@socketio.on('remote_shuffle_songs')
+@socketio.on("remote_shuffle_songs")
 def handle_shuffle_songs(json):
-    print('handle_shuffle_songs', str(json))
-    (topic, msg) = _generate_remote_command('shuffle_songs')
+    print("handle_shuffle_songs", str(json))
+    (topic, msg) = _generate_remote_command("shuffle_songs")
     mqttc.publish(topic, msg)
 
 
 # launch the Flask (+socketio) webserver!
 if __name__ == "__main__":
-    web_host = WEBSERVER_CONF['host']
-    web_port = WEBSERVER_CONF['port']
-    web_debug = WEBSERVER_CONF['debug']
-    print('Starting webserver')
-    print('   http://{}:{}'.format(web_host, web_port))
+    web_host = WEBSERVER_CONF["host"]
+    web_port = WEBSERVER_CONF["port"]
+    web_debug = WEBSERVER_CONF["debug"]
+    print("Starting webserver")
+    print("   http://{}:{}".format(web_host, web_port))
     socketio.run(app, host=web_host, port=web_port, debug=web_debug)

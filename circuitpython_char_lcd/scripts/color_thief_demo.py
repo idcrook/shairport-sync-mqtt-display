@@ -11,46 +11,46 @@ image1 = ColorThief("how_sweet.jpg")
 
 # get the dominant color
 dominant_color = image1.get_color(quality=1)
-print('dominant_color (quality=1) = {}'.format(dominant_color))
+print("dominant_color (quality=1) = {}".format(dominant_color))
 
 dominant_color = image1.get_color()
-print('dominant_color = {}'.format(dominant_color))
+print("dominant_color = {}".format(dominant_color))
 
 dominant_color = image1.get_color(quality=20)
-print('dominant_color (quality=20) = {}'.format(dominant_color))
+print("dominant_color (quality=20) = {}".format(dominant_color))
 
 palette = image1.get_palette(color_count=3)
-print('palette = {}'.format(palette))
+print("palette = {}".format(palette))
 
 image2 = ColorThief("joker.jpg")
 
 # get the dominant color
 dominant_color = image2.get_color(quality=1)
-print('dominant_color (quality=1) = {}'.format(dominant_color))
+print("dominant_color (quality=1) = {}".format(dominant_color))
 
 dominant_color = image2.get_color()
-print('dominant_color = {}'.format(dominant_color))
+print("dominant_color = {}".format(dominant_color))
 
 dominant_color = image2.get_color(quality=20)
-print('dominant_color (quality=20) = {}'.format(dominant_color))
+print("dominant_color (quality=20) = {}".format(dominant_color))
 
 palette = image2.get_palette(color_count=3)
-print('palette = {}'.format(palette))
+print("palette = {}".format(palette))
 
 image3 = ColorThief("dust.jpg")
 
 # get the dominant color
 dominant_color = image3.get_color(quality=1)
-print('dominant_color (quality=1) = {}'.format(dominant_color))
+print("dominant_color (quality=1) = {}".format(dominant_color))
 
 dominant_color = image3.get_color()
-print('dominant_color = {}'.format(dominant_color))
+print("dominant_color = {}".format(dominant_color))
 
 dominant_color = image3.get_color(quality=20)
-print('dominant_color (quality=20) = {}'.format(dominant_color))
+print("dominant_color (quality=20) = {}".format(dominant_color))
 
 palette = image3.get_palette(color_count=3)
-print('palette = {}'.format(palette))
+print("palette = {}".format(palette))
 
 # output on raspberry pi 3 running raspbian stretch
 """

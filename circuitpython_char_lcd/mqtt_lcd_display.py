@@ -14,7 +14,6 @@ from pathlib import Path
 import signal
 import shutil
 import ssl
-import sys
 import tempfile
 import time
 
@@ -23,13 +22,14 @@ import busio
 import adafruit_character_lcd.character_lcd_rgb_i2c as character_lcd
 import paho.mqtt.client as mqtt
 from yaml import safe_load
+
 try:
     from colorthief import ColorThief  # pip install colorthief
 except ImportError:
-    print('For backlight colors from cover art:')
-    print('    pip install colorthief')
-    print('    sudo apt install libtiff5')
-    print('    sudo apt install libopenjp2-7')
+    print("For backlight colors from cover art:")
+    print("    pip install colorthief")
+    print("    sudo apt install libtiff5")
+    print("    sudo apt install libopenjp2-7")
 
 # determine path to this script
 mypath = Path().absolute()
@@ -42,12 +42,12 @@ with config_file.open() as f:
     config = safe_load(f)
 
 # subtrees of the config file
-MQTT_CONF = config['mqtt']  # required section
-DISPLAYUI_CONF = config.get('displayui')  # required section
-REMOTECONTROL_CONF = config.get('remotecontrol', {})
+MQTT_CONF = config["mqtt"]  # required section
+DISPLAYUI_CONF = config.get("displayui")  # required section
+REMOTECONTROL_CONF = config.get("remotecontrol", {})
 
 # "base" topic - should match shairport-sync.conf {mqtt.topic}
-TOPIC_ROOT = MQTT_CONF['topic']
+TOPIC_ROOT = MQTT_CONF["topic"]
 print(TOPIC_ROOT)
 
 # this variable will keep the most recent playing track info
@@ -60,17 +60,17 @@ UPDATE_DISPLAY = False
 UPDATE_DISPLAY_COLOR = False
 
 known_play_metadata_types = {
-    'play_end': 'play_end',
-    'play_start': 'play_start',
-    'play_flush': 'play_flush',
-    'play_resume': 'play_resume'
+    "play_end": "play_end",
+    "play_start": "play_start",
+    "play_flush": "play_flush",
+    "play_resume": "play_resume",
 }
 
 known_track_metadata_types = {
-    'artist': 'showArtist',
-    'album': 'showAlbum',
-    'title': 'showTitle',
-    'genre': 'showGenre'
+    "artist": "showArtist",
+    "album": "showAlbum",
+    "title": "showTitle",
+    "genre": "showGenre",
 }
 
 
@@ -80,14 +80,14 @@ def resolveConfigData(config):
     Set default value if the key is not found in config (second arg in dict.get())"""
     templateData = {}
 
-    print('backlight coloring', config.get('update_backlight_color', False))
-    if config.get('update_backlight_color', False):
-        templateData['showBacklightColor'] = True
+    print("backlight coloring", config.get("update_backlight_color", False))
+    if config.get("update_backlight_color", False):
+        templateData["showBacklightColor"] = True
 
-    if config.get('show_track_metadata', True):
+    if config.get("show_track_metadata", True):
         metadata_types = config.get(
-            'track_metadata',
-            ['artist', 'album', 'title'])  # defaults to these three
+            "track_metadata", ["artist", "album", "title"]
+        )  # defaults to these three
         for metadata_type in metadata_types:
             if metadata_type in known_track_metadata_types:
                 templateData[known_track_metadata_types[metadata_type]] = True
@@ -103,9 +103,20 @@ def _form_subtopic_topic(subtopic):
 
 # Available commands listed in shairport-sync.conf
 known_remote_commands = [
-    "command", "beginff", "beginrew", "mutetoggle", "nextitem", "previtem",
-    "pause", "playpause", "play", "stop", "playresume", "shuffle_songs",
-    "volumedown", "volumeup"
+    "command",
+    "beginff",
+    "beginrew",
+    "mutetoggle",
+    "nextitem",
+    "previtem",
+    "pause",
+    "playpause",
+    "play",
+    "stop",
+    "playresume",
+    "shuffle_songs",
+    "volumedown",
+    "volumeup",
 ]
 
 
@@ -118,7 +129,7 @@ def _generate_remote_command(command):
         msg = command
         return topic, msg
     else:
-        raise ValueError('Unknown remote command: {}'.format(command))
+        raise ValueError("Unknown remote command: {}".format(command))
 
 
 def on_connect(client, userdata, flags, rc):
@@ -134,12 +145,12 @@ def on_connect(client, userdata, flags, rc):
     subtopic_list.extend(list(known_play_metadata_types.keys()))
 
     # only subscribe to cover art if we are going to use it
-    if (resolveConfigData(DISPLAYUI_CONF)).get('showBacklightColor'):
-        subtopic_list.append('cover')
+    if (resolveConfigData(DISPLAYUI_CONF)).get("showBacklightColor"):
+        subtopic_list.append("cover")
 
     for subtopic in subtopic_list:
         topic = _form_subtopic_topic(subtopic)
-        print("topic", topic, end=' ')
+        print("topic", topic, end=" ")
         (result, msg_id) = client.subscribe(topic, 0)  # QoS==0 should be fine
         print(msg_id)
 
@@ -147,10 +158,10 @@ def on_connect(client, userdata, flags, rc):
 def _guessImageMime(magic):
     """Peeks at leading bytes in binary object to identify image format."""
 
-    if magic.startswith(b'\xff\xd8'):
-        return 'image/jpeg'
-    elif magic.startswith(b'\x89PNG\r\n\x1a\r'):
-        return 'image/png'
+    if magic.startswith(b"\xff\xd8"):
+        return "image/jpeg"
+    elif magic.startswith(b"\x89PNG\r\n\x1a\r"):
+        return "image/png"
     else:
         return "image/jpg"
 
@@ -161,7 +172,7 @@ def _normalizeRGB8bToBacklightRGB(rgb):
     CircuitPython adafruit_character_lcd library expects (R,G,B) fields in range of 0-100.
     """
 
-    rgb_sum = (rgb[0] + rgb[1] + rgb[2])
+    rgb_sum = rgb[0] + rgb[1] + rgb[2]
     scale_factor = 100.0 * 3
     # scaled (100, 100, 100) if they're all equal (sum should add up to 300)
     r_scaled = int((rgb[0] / rgb_sum) * scale_factor)
@@ -202,10 +213,10 @@ def _send_and_store_playing_metadata(metadata_name, message):
     global UPDATE_DISPLAY
     # print("{} update".format(metadata_name))
     saved_metadata_name = "playing_{}".format(metadata_name)
-    if metadata_name == 'dominant_color':
+    if metadata_name == "dominant_color":
         SAVED_INFO[saved_metadata_name] = message
     else:
-        SAVED_INFO[saved_metadata_name] = message.payload.decode('utf8')
+        SAVED_INFO[saved_metadata_name] = message.payload.decode("utf8")
     UPDATE_DISPLAY = True
 
 
@@ -253,7 +264,7 @@ def on_message(client, userdata, message):
                 fp.write(message.payload)
                 if False:  # for debugging
                     fname = fp.name
-                    fname_copy = fname + '.bin'
+                    fname_copy = fname + ".bin"
                     print(fname, fname_copy)
                     shutil.copy(fname, fname_copy)
 
@@ -261,8 +272,7 @@ def on_message(client, userdata, message):
                 image_to_analyze = ColorThief(fp)
                 dominant_color = image_to_analyze.get_color(quality=20)
                 print(dominant_color)
-                _send_and_store_playing_metadata("dominant_color",
-                                                 dominant_color)
+                _send_and_store_playing_metadata("dominant_color", dominant_color)
 
         else:
             pass
@@ -275,40 +285,42 @@ mqttc = mqtt.Client()
 mqttc.on_connect = on_connect
 mqttc.on_message = on_message
 
-if MQTT_CONF.get('use_tls'):
-    tls_conf = MQTT_CONF.get('tls')
+if MQTT_CONF.get("use_tls"):
+    tls_conf = MQTT_CONF.get("tls")
     print("Using TLS config", tls_conf)
     # assumes full valid TLS configuration for paho lib
     if tls_conf:
-        mqttc.tls_set(ca_certs=tls_conf['ca_certs_path'],
-                      certfile=tls_conf['certfile_path'],
-                      keyfile=tls_conf['keyfile_path'],
-                      cert_reqs=ssl.CERT_REQUIRED,
-                      tls_version=ssl.PROTOCOL_TLSv1_2,
-                      ciphers=None)
+        mqttc.tls_set(
+            ca_certs=tls_conf["ca_certs_path"],
+            certfile=tls_conf["certfile_path"],
+            keyfile=tls_conf["keyfile_path"],
+            cert_reqs=ssl.CERT_REQUIRED,
+            tls_version=ssl.PROTOCOL_TLSv1_2,
+            ciphers=None,
+        )
 
-        if tls_conf.get('allow_insecure_server_certificate', False):
+        if tls_conf.get("allow_insecure_server_certificate", False):
             # from docs: Do not use this function in a real system. Setting value
             # to True means there is no point using encryption.
             mqttc.tls_insecure_set(True)
 
-if MQTT_CONF.get('username'):
-    username = MQTT_CONF.get('username')
+if MQTT_CONF.get("username"):
+    username = MQTT_CONF.get("username")
     print("MQTT username:", username)
-    pw = MQTT_CONF.get('password')
+    pw = MQTT_CONF.get("password")
     if pw:
         mqttc.username_pw_set(username, password=pw)
     else:
         mqttc.username_pw_set(username)
 
-if MQTT_CONF.get('logger'):
-    print('Enabling MQTT logging')
+if MQTT_CONF.get("logger"):
+    print("Enabling MQTT logging")
     mqttc.enable_logger()
 
 # Launch MQTT broker connection
-mqtt_host = MQTT_CONF['host']
-mqtt_port = MQTT_CONF['port']
-print("Connecting to broker", mqtt_host, 'port', mqtt_port)
+mqtt_host = MQTT_CONF["host"]
+mqtt_port = MQTT_CONF["port"]
+print("Connecting to broker", mqtt_host, "port", mqtt_port)
 mqttc.connect(mqtt_host, port=mqtt_port)
 # loop_start run a thread in the background
 mqttc.loop_start()
@@ -354,8 +366,14 @@ class GracefulKiller:
         signal.signal(signal.SIGTERM, self.exit_gracefully)
 
     def exit_gracefully(self, signum, frame):
-        print('Received signal ' + str(signum) + ' on line ' +
-              str(frame.f_lineno) + ' in ' + frame.f_code.co_filename)
+        print(
+            "Received signal "
+            + str(signum)
+            + " on line "
+            + str(frame.f_lineno)
+            + " in "
+            + frame.f_code.co_filename
+        )
         self.kill_now = True
 
 
@@ -367,7 +385,7 @@ if __name__ == "__main__":
     i2c = busio.I2C(board.SCL, board.SDA)
     lcd = character_lcd.Character_LCD_RGB_I2C(i2c, lcd_columns, lcd_rows)
 
-    if DISPLAYUI_CONF.get('show_lcd_splash', False):
+    if DISPLAYUI_CONF.get("show_lcd_splash", False):
         lcd_startup_splash(lcd)
     else:
         # Set LCD color to "yellow"
@@ -387,8 +405,8 @@ if __name__ == "__main__":
         lcd.clear()
 
     def _get_formatted_msg_and_props():
-        artist = SAVED_INFO.get('playing_artist', "Artist")
-        title = SAVED_INFO.get('playing_title', "Title")
+        artist = SAVED_INFO.get("playing_artist", "Artist")
+        title = SAVED_INFO.get("playing_title", "Title")
         formatted_msg = f"{artist:{lcd_row_max_columns}.{lcd_row_max_columns}s}\n{title:{lcd_row_max_columns}.{lcd_row_max_columns}s}"
 
         # for longer strings
@@ -400,17 +418,19 @@ if __name__ == "__main__":
 
     # read default backlight color
     default_rgb_backlight_color = DISPLAYUI_CONF.get(
-        'default_rgb_backlight_color', (0, 255, 0))
+        "default_rgb_backlight_color", (0, 255, 0)
+    )
 
     def _get_backlight_color():
-        dominant_color = SAVED_INFO.get('playing_dominant_color',
-                                        default_rgb_backlight_color)
+        dominant_color = SAVED_INFO.get(
+            "playing_dominant_color", default_rgb_backlight_color
+        )
         backlight_color = _normalizeRGB8bToBacklightRGB(dominant_color)
         return backlight_color
 
     def _handle_button_pressed(lcd, button_pressed=None):
         print(button_pressed)
-        command = REMOTECONTROL_CONF['buttons'].get(button_pressed, None)
+        command = REMOTECONTROL_CONF["buttons"].get(button_pressed, None)
         if command:
             # print command onto LCD
             lcd.message = "<<" + command + ">>"
@@ -418,7 +438,7 @@ if __name__ == "__main__":
             (topic, msg) = _generate_remote_command(command)
             mqttc.publish(topic, msg)
         else:
-            print(f'-E- Could not find command for button = {button_pressed}')
+            print(f"-E- Could not find command for button = {button_pressed}")
 
     def _scan_for_button_press():
         button_press = 0
@@ -427,23 +447,23 @@ if __name__ == "__main__":
         if lcd.down_button:
             # lcd.message = "Down!   "
             button_press = 1
-            button_pressed = 'button_down'
+            button_pressed = "button_down"
         elif lcd.left_button:
             # lcd.message = "Left!   "
             button_press = 1
-            button_pressed = 'button_left'
+            button_pressed = "button_left"
         elif lcd.right_button:
             # lcd.message = "Right!  "
             button_press = 1
-            button_pressed = 'button_right'
+            button_pressed = "button_right"
         elif lcd.select_button:
             # lcd.message = "Select! "
             button_press = 1
-            button_pressed = 'button_select'
+            button_pressed = "button_select"
         elif lcd.up_button:
             # lcd.message = "Up!     "
             button_press = 1
-            button_pressed = 'button_up'
+            button_pressed = "button_up"
 
         if button_press:
             UPDATE_DISPLAY = True
@@ -452,18 +472,18 @@ if __name__ == "__main__":
         return button_press
 
     # initialize SAVED_INFO
-    SAVED_INFO['playing_artist'] = "Unknown Artist"
-    SAVED_INFO['playing_album'] = "Unknown Album"
-    SAVED_INFO['playing_genre'] = "Unknown Genre"
-    SAVED_INFO['playing_title'] = "Unknown Title"
-    SAVED_INFO['playing_dominant_color'] = default_rgb_backlight_color
+    SAVED_INFO["playing_artist"] = "Unknown Artist"
+    SAVED_INFO["playing_album"] = "Unknown Album"
+    SAVED_INFO["playing_genre"] = "Unknown Genre"
+    SAVED_INFO["playing_title"] = "Unknown Title"
+    SAVED_INFO["playing_dominant_color"] = default_rgb_backlight_color
     UPDATE_DISPLAY = True
 
     # output current process id
-    print('My PID is:', os.getpid())
+    print("My PID is:", os.getpid())
 
     killer = GracefulKiller()
-    print('Starting main loop')
+    print("Starting main loop")
     scroll_sleep_length = 0.45
     refresh_interval = 25  # in seconds
     time_to_refresh = datetime.datetime.now()
@@ -481,7 +501,8 @@ if __name__ == "__main__":
             backlight_color = _get_backlight_color()
 
             lcd.color = backlight_color
-            if button_press: time.sleep(button_press_delay)
+            if button_press:
+                time.sleep(button_press_delay)
             lcd.message = fmt_msg1
             button_press = _scan_for_button_press()
 
@@ -489,7 +510,8 @@ if __name__ == "__main__":
                 extra_chars = min(max_len, (2 * lcd_columns) - 1)
                 fmt_msg, junk = _get_formatted_msg_and_props()
                 lcd.color = _get_backlight_color()
-                if button_press: time.sleep(button_press_delay)
+                if button_press:
+                    time.sleep(button_press_delay)
                 lcd.message = fmt_msg
 
                 if killer.kill_now:
@@ -511,14 +533,16 @@ if __name__ == "__main__":
 
                     time.sleep(scroll_sleep_length)
                     button_press = _scan_for_button_press()
-                    if button_press: time.sleep(button_press_delay)
+                    if button_press:
+                        time.sleep(button_press_delay)
                     lcd.move_left()
 
             lcd.home()
             fmt_msg, junk = _get_formatted_msg_and_props()
             lcd.color = _get_backlight_color()
             button_press = _scan_for_button_press()
-            if button_press: time.sleep(button_press_delay)
+            if button_press:
+                time.sleep(button_press_delay)
             lcd.message = fmt_msg
 
         current_time = datetime.datetime.now()
@@ -526,10 +550,9 @@ if __name__ == "__main__":
             print(current_time, time_to_refresh)  # duration of event loop
         if current_time > time_to_refresh:
             # schedule a display refresh
-            time_to_refresh = current_time + timedelta(
-                seconds=refresh_interval)
+            time_to_refresh = current_time + timedelta(seconds=refresh_interval)
             if False:
-                print('scheduled refresh')
+                print("scheduled refresh")
                 print(current_time, time_to_refresh)
 
             UPDATE_DISPLAY = True
