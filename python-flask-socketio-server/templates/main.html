@@ -2,6 +2,7 @@
 {% block title %}{% endblock %}
 {% block head %}
 {{ super() }}
+<!-- Main javascript -->
 <script type="text/javascript" charset="utf-8">
 
  // functionality for ES6 String.padLeft
@@ -121,6 +122,15 @@
      $("#coverart").attr("src","data:" + msg.mimetype + ";base64," + msg.data);
    });
 
+   // refresh page
+   Mousetrap.bind('r', function() {
+     // forceGet = true: do not use cache, get from server
+     location.reload(true);
+   });
+
+   Mousetrap.bind('p', function() { $('#button_bw').click(); });
+   Mousetrap.bind('n', function() { $('#button_fw').click(); });
+
    // button handlers
    $('#button_bw').on('click', function (e) {
      console.log("button back invoked.");
@@ -130,6 +140,9 @@
      console.log("button forward invoked.");
      socket.emit('remote_nextitem', {});
    });
+
+   Mousetrap.bind('s',     function() { $('#button_playpause').click(); });
+   Mousetrap.bind('space', function() { $('#button_playpause').click(); });
 
    $('#button_playpause').on('click', function (e) {
      if (playstate=='stop') {
@@ -153,6 +166,12 @@
    });
 
    {% if showPlayerExtended %}
+
+   Mousetrap.bind('=', function() { $('#button_volumeup').click(); });
+   Mousetrap.bind('plus', function() { $('#button_volumeup').click(); });
+   Mousetrap.bind('-', function() { $('#button_volumedown').click(); });
+   Mousetrap.bind('m', function() { $('#button_mute').click(); });
+
    // volume button handlers
    $('#button_volumedown').on('click', function (e) {
      console.log("button volumedown invoked.");
@@ -175,6 +194,7 @@
    });
 
    {% if showPlayerShuffle %}
+   Mousetrap.bind('j', function() { $('#button_shuffle').click(); });
    // shuffle_songs does not seem to work
    $('#button_shuffle').on('click', function (e) {
      //change_shuffle_button_glyph();
@@ -185,6 +205,8 @@
    {% endif %} // showPlayerShuffle
 
    {% if showPlayerStop %}
+   Mousetrap.bind('q', function() { $('#button_stop').click(); });
+   Mousetrap.bind('esc', function() { $('#button_stop').click(); });
    $('#button_stop').on('click', function (e) {
      if (playstate=='play') {
        socket.emit('remote_pause', {});
@@ -198,6 +220,8 @@
    {% endif %} // showPlayerStop
 
    {% if showPlayerSeeking %}
+   Mousetrap.bind('a', function() { $('#button_rewind').click(); });
+   Mousetrap.bind('d', function() { $('#button_fastforward').click(); });
    /* https://nto.github.io/AirPlay.html#audio-remotecontrol */
    $('#button_rewind').on('click', function (e) {
      console.log("button rewind invoked.");
