@@ -60,8 +60,8 @@ python3 -m venv env
 source env/bin/activate
 pip install flask
 pip install flask-socketio
+pip install wheel # not required; avoids pyyaml or paho-mqtt bdist_wheel error
 pip install paho-mqtt
-pip install wheel # not required; avoids a pyyaml benign build error
 pip install pyyaml
 ```
 
