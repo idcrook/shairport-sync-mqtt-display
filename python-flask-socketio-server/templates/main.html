@@ -5,6 +5,9 @@
 <!-- Main javascript -->
 <script type="text/javascript" charset="utf-8">
 
+ var globalResizeTimer = null;
+ var globalSliderReference = {func: null };
+
  // functionality for ES6 String.padLeft
  // found at https://stackoverflow.com/a/24398129
  function pad(pad, str, padLeft) {
@@ -50,12 +53,30 @@
    }
  }
 
+ function handleWindowResize(mySlider) {
+   var magicHeight = 600;
+   var currentValue = mySlider.bootstrapSlider('getValue');
+
+   console.log('window height: ' +  window.innerHeight);
+   console.log('window width: ' +  window.innerWidth);
+   console.log('current slider value: ' + currentValue);
+
+   var elem = mySlider.bootstrapSlider('getElement');
+   console.log('elem: ' + elem);
+   console.log('nodeName: ' + elem.nodeName);
+
+   if (window.innerHeight > 600) {
+   } else {
+   }
+
+ }
 
  $(document).ready(function() {
    var socket = io.connect('http://' + document.domain + ':' + location.port);
    {% if showCanvas %}
    var ctx = document.getElementById('canvas').getContext('2d');
    {% endif %}
+
 
    {% if showPlayerExtended %}
    var airplay_volume_percent = 80;
@@ -67,6 +88,7 @@
   	 max: 100,
      step: 0.5,
   	 value: 50,
+  	 orientation: 'horizontal',
      tooltip: "show",
      tooltip_position: "top",
 	 handle: "round",
@@ -77,6 +99,15 @@
      socket.emit('remote_volumedown', {});
      socket.emit('remote_volumeup', {});
    }
+
+   handleWindowResize(volumeSlider);
+   $(window).resize(function() {
+     if(globalResizeTimer != null) window.clearTimeout(globalResizeTimer);
+     globalResizeTimer = window.setTimeout(function() {
+       handleWindowResize(volumeSlider);
+     }, 200);
+   });
+
    {% endif %}
 
    var playstate = 'play';
@@ -342,7 +373,7 @@
 {% endblock %}
 
 {% block content %}
-<div id="now-playing">
+<div id="now-playing" onresize="console.log('resize')">
   <div id="trackinfo">
     {% if showCoverArt %}
     <div id="coverart-container">
@@ -359,6 +390,21 @@
   </div>
 
   {% if showPlayer %}
+
+  {% if showPlayerExtended %}
+  <div class="player text-center">
+    <input type="text" id="slider_volume" class="player-volume-control">
+  </div>
+  <div class="player text-center">
+    <button type="button" id="button_volumedown" class="btn btn-sm btn-link player-volume-control">
+      <span class="glyphicon glyphicon-volume-down"></span>
+    </button>
+    <button type="button" id="button_volumeup" class="btn btn-sm btn-link player-volume-control">
+      <span class="glyphicon glyphicon-volume-up"></span>
+    </button>
+  </div>
+  {% endif %} <!-- showPlayerExtended -->
+
   <div class="player text-center">
     <button type="button" id="button_bw" class="btn btn-lg btn-default player-playback-control">
       <span class="glyphicon glyphicon-step-backward"></span>
@@ -382,15 +428,6 @@
   </div>
   {% endif %} <!-- showPlayer -->
   {% if showPlayerExtended %}
-  <div class="player text-center">
-    <button type="button" id="button_volumedown" class="btn btn-sm btn-link player-volume-control">
-      <span class="glyphicon glyphicon-volume-down"></span>
-    </button>
-    <input type="text" id="slider_volume" class="player-volume-control">
-    <button type="button" id="button_volumeup" class="btn btn-sm btn-link player-volume-control">
-      <span class="glyphicon glyphicon-volume-up"></span>
-    </button>
-  </div>
   <div class="player text-center">
     <button type="button" id="button_mute" class="btn btn-lg btn-default player-playback-control">
       <span class="glyphicon glyphicon-volume-off"></span>
