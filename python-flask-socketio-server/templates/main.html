@@ -342,64 +342,66 @@
 {% endblock %}
 
 {% block content %}
-<div id="trackinfo">
-  {% if showCoverArt %}
-  <div id="coverart-container">
-    <img id="coverart" class="shadow {% if showCoverArtRoundedCorners %}rounded-corners{% endif %}" src="" />
+<div id="now-playing">
+  <div id="trackinfo">
+    {% if showCoverArt %}
+    <div id="coverart-container">
+      <img id="coverart" class="shadow {% if showCoverArtRoundedCorners %}rounded-corners{% endif %}" src="" />
+    </div>
+    {% endif %}
+
+    {% if showArtist %} <div id="artist">Artist</div>     {% endif %}
+    {% if showAlbum  %} <div id="album">Album</div>       {% endif %}
+    {% if showTitle  %} <div id="track">Song Title</div>  {% endif %}
+    {% if showGenre  %} <div id="genre">Genre</div>       {% endif %}
+
+    {% if showUpdateInfo %} <div id="updateinfo">Song info updated <span id="updatedInfo"></span></div>  {% endif %}
   </div>
-  {% endif %}
-
-  {% if showArtist %} <div id="artist">Artist</div>     {% endif %}
-  {% if showAlbum  %} <div id="album">Album</div>       {% endif %}
-  {% if showTitle  %} <div id="track">Song Title</div>  {% endif %}
-  {% if showGenre  %} <div id="genre">Genre</div>       {% endif %}
-
-  {% if showUpdateInfo %} <div id="updateinfo">Song info updated <span id="updatedInfo"></span></div>  {% endif %}
 
   {% if showPlayer %}
   <div class="player text-center">
-    <button type="button" id="button_bw" class="btn btn-lg btn-default">
+    <button type="button" id="button_bw" class="btn btn-lg btn-default player-playback-control">
       <span class="glyphicon glyphicon-step-backward"></span>
     </button>
     {% if showPlayerSeeking %}
-    <button type="button" id="button_rewind" class="btn btn-lg btn-default">
+    <button type="button" id="button_rewind" class="btn btn-lg btn-default  player-playback-control">
       <span class="glyphicon glyphicon-backward"></span>
     </button>
     {% endif %} <!-- showPlayerSeeking -->
-    <button type="button" id="button_playpause" class="btn btn-lg btn-default">
+    <button type="button" id="button_playpause" class="btn btn-lg btn-default player-playback-control">
       <span class="glyphicon glyphicon-pause"></span>
     </button>
     {% if showPlayerSeeking %}
-    <button type="button" id="button_fastforward" class="btn btn-lg btn-default">
+    <button type="button" id="button_fastforward" class="btn btn-lg btn-default player-playback-control">
       <span class="glyphicon glyphicon-forward"></span>
     </button>
     {% endif %} <!-- showPlayerSeeking -->
-    <button type="button" id="button_fw" class="btn btn-lg btn-default">
+    <button type="button" id="button_fw" class="btn btn-lg btn-default player-playback-control">
       <span class="glyphicon glyphicon-step-forward"></span>
     </button>
   </div>
   {% endif %} <!-- showPlayer -->
   {% if showPlayerExtended %}
   <div class="player text-center">
-    <button type="button" id="button_volumedown" class="btn btn-sm btn-link">
+    <button type="button" id="button_volumedown" class="btn btn-sm btn-link player-volume-control">
       <span class="glyphicon glyphicon-volume-down"></span>
     </button>
-    <input type="text" id="slider_volume">
-    <button type="button" id="button_volumeup" class="btn btn-sm btn-link">
+    <input type="text" id="slider_volume" class="player-volume-control">
+    <button type="button" id="button_volumeup" class="btn btn-sm btn-link player-volume-control">
       <span class="glyphicon glyphicon-volume-up"></span>
     </button>
   </div>
   <div class="player text-center">
-    <button type="button" id="button_mute" class="btn btn-lg btn-default">
+    <button type="button" id="button_mute" class="btn btn-lg btn-default player-playback-control">
       <span class="glyphicon glyphicon-volume-off"></span>
     </button>
     {% if showPlayerShuffle %}
-    <button type="button" id="button_shuffle" class="btn btn-lg btn-default">
+    <button type="button" id="button_shuffle" class="btn btn-lg btn-default player-playback-control">
       <span class="glyphicon glyphicon-random"></span>
     </button>
     {% endif %} <!-- showPlayerShuffle -->
     {% if showPlayerStop %}
-    <button type="button" id="button_stop" class="btn btn-lg btn-default">
+    <button type="button" id="button_stop" class="btn btn-lg btn-default player-playback-control">
       <span class="glyphicon glyphicon-stop"></span>
     </button>
     {% endif %} <!-- showPlayerStop -->
@@ -408,4 +410,4 @@
   {% if showCanvas %}
   <canvas id="canvas"></canvas>
   {% endif %}
-{% endblock %}
+  {% endblock %}

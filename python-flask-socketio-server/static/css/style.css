@@ -69,6 +69,57 @@ img.rounded-corners {
 const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
 */
 
+/* for "small screen" and widget layout */
+@media (max-height: 600px) {
+
+    #now-playing {
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-start;
+        align-items: flex-start;
+    }
+
+    #trackinfo {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: flex-start;
+    }
+
+    #coverart {
+        height: 360px;
+        margin: 0px 0;
+    }
+
+    #artist {
+        margin-top: 10px;
+    }
+
+    #genre {
+        /* margin-top: 10px; */
+        visibility: hidden;
+    }
+
+    #updateinfo {
+        visibility: hidden;
+    }
+
+    .player-playback-control {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        align-items: flex-end;
+    }
+
+    .player-volume-control {
+        display: flex;
+        flex-direction: column-reverse;
+        justify-content: flex-start;
+        align-items: flex-start;
+    }
+
+}
+
 /* "Dark mode" media query overrides */
 @media (prefers-color-scheme: dark) {
   body {
