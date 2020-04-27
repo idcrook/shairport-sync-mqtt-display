@@ -54,21 +54,21 @@
  }
 
  function handleWindowResize(mySlider) {
-   var magicHeight = 600;
-   var currentValue = mySlider.bootstrapSlider('getValue');
+   var magicHeight = 640;
+   /* var currentValue = mySlider.bootstrapSlider('getValue'); */
 
    console.log('window height: ' +  window.innerHeight);
    console.log('window width: ' +  window.innerWidth);
-   console.log('current slider value: ' + currentValue);
+   /* console.log('current slider value: ' + currentValue); */
 
-   var elem = mySlider.bootstrapSlider('getElement');
-   console.log('elem: ' + elem);
-   console.log('nodeName: ' + elem.nodeName);
-
-   if (window.innerHeight > 600) {
+   // swap button sizes depending on window height
+   if (window.innerHeight > magicHeight) {
+     $('#button_volumedown').addClass("btn-sm").removeClass("btn-xs");
+     $('#button_volumeup').addClass("btn-sm").removeClass("btn-xs");
    } else {
+     $('#button_volumedown').addClass("btn-xs").removeClass("btn-sm");
+     $('#button_volumeup').addClass("btn-xs").removeClass("btn-sm");
    }
-
  }
 
  $(document).ready(function() {
@@ -84,6 +84,7 @@
 
    // Instantiate a slider
    var volumeSlider = $("#slider_volume").bootstrapSlider({
+     id: 'volume-slider-id',
   	 min: 0,
   	 max: 100,
      step: 0.5,
@@ -390,15 +391,13 @@
   </div>
 
   {% if showPlayer %}
-
+  <div id="player-id">
   {% if showPlayerExtended %}
-  <div class="player text-center">
-    <input type="text" id="slider_volume" class="player-volume-control">
-  </div>
   <div class="player text-center">
     <button type="button" id="button_volumedown" class="btn btn-sm btn-link player-volume-control">
       <span class="glyphicon glyphicon-volume-down"></span>
     </button>
+    <input type="text" id="slider_volume" class="player-volume-control">
     <button type="button" id="button_volumeup" class="btn btn-sm btn-link player-volume-control">
       <span class="glyphicon glyphicon-volume-up"></span>
     </button>
@@ -444,6 +443,10 @@
     {% endif %} <!-- showPlayerStop -->
   </div>
   {% endif %} <!-- showPlayerExtended -->
+  {% if showPlayer %}
+  </div> <!-- player-id -->
+  {% endif %} <!-- showPlayer -->
+
   {% if showCanvas %}
   <canvas id="canvas"></canvas>
   {% endif %}

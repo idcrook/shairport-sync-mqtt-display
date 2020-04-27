@@ -7,12 +7,12 @@ html {
 
 body {
     height: 100%;
-    margin: 0;
+    /* margin-left: 10pt; */
     font-family: sans-serif;
 
     display: flex;
     justify-content: center;
-    align-items: center;
+    /* align-items: center; */
 }
 
 img.rounded-corners {
@@ -24,9 +24,9 @@ img.rounded-corners {
     box-shadow: 0 5px 10px -5px rgba(0, 0, 0, 0.8), 2px 5px 10px 5px rgba(0, 0, 0, 0.4) ;
 }
 
-.player{
-  margin: 10px 0;
-}
+/* .player{ */
+/*   margin: 10px 0; */
+/* } */
 
 #trackinfo {
     display: flex;
@@ -37,12 +37,11 @@ img.rounded-corners {
 
 #coverart {
     height: 256px;
-    margin: 15px 0;
-
+    margin: 10px 0;
 }
 
 #artist {
-    font-weight: 500;
+    font-weight: 200;
 }
 
 #album {
@@ -70,7 +69,7 @@ const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-schem
 */
 
 /* for "small screen" and widget layout */
-@media (max-height: 600px) {
+@media (max-height: 640px) {
 
     #now-playing {
         display: flex;
@@ -86,9 +85,16 @@ const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-schem
         align-items: flex-start;
     }
 
+    #player-id {
+        display: flex;
+        flex-direction: column;
+        align-self: stretch;
+        align-items: center;
+    }
+
     #coverart {
-        height: 360px;
-        margin: 0px 0;
+        height: 400px;
+        margin-top: 20pt ;
     }
 
     #artist {
@@ -104,19 +110,27 @@ const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-schem
         visibility: hidden;
     }
 
+    #button_volumedown {
+        visibility: hidden;
+    }
+
+    #button_volumeup {
+        visibility: hidden;
+    }
+
     .player-playback-control {
         display: flex;
+        /* display: block; */
         flex-direction: column;
-        justify-content: flex-end;
-        align-items: flex-end;
+        justify-content: center;
+        align-items: center;
+        margin: 22pt 0;
     }
 
     .player-volume-control {
-        display: flex;
-        flex-direction: column-reverse;
-        justify-content: flex-start;
-        align-items: flex-start;
+        margin-top: 88pt;
     }
+
 
 }
 
@@ -127,7 +141,7 @@ const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-schem
   }
   #artist {
       color: crimson;
-      font-weight: 600;
+      font-weight: 550;
   }
   #album {
       color: crimson;
