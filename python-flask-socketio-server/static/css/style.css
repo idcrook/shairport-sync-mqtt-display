@@ -37,7 +37,7 @@ img.rounded-corners {
 
 #coverart {
     height: 256px;
-    margin: 10px 0;
+    margin-top: 33pt;
 }
 
 #artist {
@@ -69,7 +69,7 @@ const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-schem
 */
 
 /* for "small screen" and widget layout */
-@media (max-height: 640px) {
+@media (max-height: 560px) {
 
     #now-playing {
         display: flex;
@@ -118,6 +118,10 @@ const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-schem
         visibility: hidden;
     }
 
+    #button_stop {
+        visibility: hidden;
+    }
+
     .player-playback-control {
         display: flex;
         /* display: block; */
@@ -129,8 +133,10 @@ const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-schem
 
     .player-volume-control {
         margin-top: 88pt;
-    }
+        margin-left: 22pt 0;
+        margin-bottom: 22pt 0;
 
+    }
 
 }
 
