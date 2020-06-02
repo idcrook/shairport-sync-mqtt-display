@@ -442,14 +442,14 @@ def handle_mutetoggle(json):
 
 
 @socketio.on("remote_volumedown")
-def handle_beginrew(json):
+def handle_volumedown(json):
     print("handle_volumedown", str(json))
     (topic, msg) = _generate_remote_command("volumedown")
     mqttc.publish(topic, msg)
 
 
 @socketio.on("remote_volumeup")
-def handle_beginrew(json):
+def handle_volumeup(json):
     print("handle_volumeup", str(json))
     (topic, msg) = _generate_remote_command("volumeup")
     mqttc.publish(topic, msg)
