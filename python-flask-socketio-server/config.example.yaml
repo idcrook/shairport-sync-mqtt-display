@@ -12,7 +12,8 @@ mqtt:
     keyfile_path: null
   logger: true
 web_server:
-  host: '0.0.0.0'
+  #host: '0.0.0.0'
+  host: '::'
   port: 8080
   debug: false
   secret_key: 'secrets!'
