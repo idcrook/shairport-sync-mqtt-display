@@ -1,0 +1,6 @@
+flask
+flask-socketio
+# wheel should not be needed, but avoids pyyaml paho-mqtt bdist_wheel error
+wheel
+paho-mqtt
+pyyaml

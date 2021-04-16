@@ -19,7 +19,7 @@ ConditionPathExists=/home/pi/projects/shairport-sync-mqtt-display/python-flask-s
 [Service]
 Type=simple
 WorkingDirectory=/home/pi/projects/shairport-sync-mqtt-display/python-flask-socketio-server
-ExecStart=/home/pi/projects/shairport-sync-mqtt-display/python-flask-socketio-server/env/bin/python \
+ExecStart=/home/pi/projects/shairport-sync-mqtt-display/python-flask-socketio-server/venv/bin/python \
           /home/pi/projects/shairport-sync-mqtt-display/python-flask-socketio-server/app.py
 User=pi
 

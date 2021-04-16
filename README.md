@@ -4,7 +4,7 @@ Utilities to display [`shairport-sync`](https://github.com/mikebrady/shairport-s
 
 ### Webserver webapp
 
-[python-flask-socketio-server](python-flask-socketio-server/) - [README.md](python-flask-socketio-server/README.md)
+[python-flask-socketio-server](python-flask-socketio-server/#readme) - [README.md](python-flask-socketio-server/README.md)
 
 -	Displays currently playing track info, including cover art.
 -	Configurable UI. Dark-mode support.
@@ -15,7 +15,7 @@ Utilities to display [`shairport-sync`](https://github.com/mikebrady/shairport-s
 
 ### Display on 16x2 Character LCD
 
-[circuitpython_char_lcd](circuitpython_char_lcd/) - [README.md](circuitpython_char_lcd/README.md)
+[circuitpython_char_lcd](circuitpython_char_lcd/#readme) - [README.md](circuitpython_char_lcd/README.md)
 
 -	Configurable display and UI.
 -	Playback remote control and volume support.
@@ -25,7 +25,7 @@ Utilities to display [`shairport-sync`](https://github.com/mikebrady/shairport-s
 
 ### LICENSE
 
-Code and documentation Copyright © 2019 David Crook under [MIT License](LICENSE).
+Code and documentation Copyright © 2019-2021 David Crook under [MIT License](LICENSE).
 
 ---
 

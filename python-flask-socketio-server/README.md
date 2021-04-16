@@ -1,103 +1,158 @@
+`python-flask-socketio-server`
+==============================
+
 ![Safari screencap - Dark mode on iPhone SE](screenshot1.png "Dark mode on iPhone SE")
 
-`python-flask-socketio-server` works in conjunction with [`shairport-sync`](https://github.com/mikebrady/shairport-sync) to host a webapp that displays Airplay®<sup id="a1">[1](#f1)</sup> track metadata. It has remote-control support and works great on mobile browsers.
+-	Works along with [`shairport-sync`](https://github.com/mikebrady/shairport-sync) to host a webapp.
 
-If you use [`shairport-sync`](https://github.com/mikebrady/shairport-sync) you should be able to get this webapp working.
+-	Webapp displays Airplay®<sup id="a1">[1](#f1)</sup> track metadata.
+
+	-	Has remote-control support and works on mobile browsers.
+
+-	If you use can build [`shairport-sync`](https://github.com/mikebrady/shairport-sync) from source, you should be able to get this webapp working.
 
 Before we begin
 ===============
 
-First, some requirements for your home network.
+First, some requirements for your home network. Requirements 2., 3., and 4. can all be hosted on the same computer, including a single Raspberry Pi®
 
 1.	*AirPlay®* source
-	-	iTunes® on a computer. Music* app in iOS™. Rogue Amoeba's [Airfoil](https://rogueamoeba.com/airfoil/) app (which happens to work with Spotify app on macOS)
-2.	*`shairport-sync`* as AirPlay® receiver
-	-	`shairport-sync` needs to be built with *MQTT support*. See [wiki - Build shairport-sync](https://github.com/idcrook/shairport-sync-mqtt-display/wiki/Build-shairport-sync-with-MQTT-support)
+	-	iTunes® or Music app in iOS™/macOS
+	-	Rogue Amoeba's [Airfoil](https://rogueamoeba.com/airfoil/) app (which can send Spotify artwork from macOS)
+2.	AirPlay® receiver
+	-	For us, this is **`shairport-sync`** built with *MQTT support*. See [Build shairport-sync - wiki](https://github.com/idcrook/shairport-sync-mqtt-display/wiki/Build-shairport-sync-with-MQTT-support-on-Raspberry-Pi)
 3.	*MQTT broker*
-	-	An MQTT broker, like `mosquitto`, visible on same network. See [wiki - Configure MQTT broker](https://github.com/idcrook/shairport-sync-mqtt-display/wiki/Configure-mosquitto-MQTT-broker)
+	-	MQTT broker like `mosquitto`, visible on same network. See [Configure MQTT broker - wiki](https://github.com/idcrook/shairport-sync-mqtt-display/wiki/Configure-mosquitto-MQTT-broker)
 4.	*Webserver*
 	-	Any computer that can run this Python 3-based webserver app (tested on macOS™ and Raspbian)
 
-Requirements 2., 3., and 4. can all be hosted on the same computer, like a Raspberry Pi®, for example
+One final requirement: A web browser to display the webpage.
 
-One final requirement: A web-browser to display the served webpage.
+Let's Go!
+---------
 
-let's go
---------
+For our purposes, this guide assumes:
 
-For our purposes, this guide assumes a Raspberry Pi running Raspbian `stretch`, with the above requirements 1.) 2.) and 3.) being already met, and with req's 2.) and 3.) running on same Raspberry Pi where the webserver app (4.) runs.
+-	a Raspberry Pi running Raspbian `buster`
+-	with AirPlay receiver and MQTT broker running on same Raspberry Pi as this webapp.
 
 See [wiki](https://github.com/idcrook/shairport-sync-mqtt-display/wiki) for additional pointers.
 
-Quickstart
-----------
+Requirements
+------------
 
-Install python dependencies and clone this repo
+Install a python3 development setup and other libraries
 
-```bash
-# Install a python3 dev setup and other libraries
+```shell
 sudo apt install -y python3-pip python3-venv \
-python3-setuptools python3-wheel git mosquitto-clients
-
-# Validate MQTT broker config. E.g., from two different bash sessions:
-# .. mosquitto_sub ...
-# .. mosquitto_pub ...
-
-# grab a copy of this repo
-git clone https://github.com/idcrook/shairport-sync-mqtt-display.git
-cd shairport-sync-mqtt-display
-# now proceed to the next section: "install"
+    python3-setuptools python3-wheel mosquitto-clients
 ```
 
-install
+Validate your MQTT broker config. See [Configure MQTT broker - wiki](https://github.com/idcrook/shairport-sync-mqtt-display/wiki/Configure-mosquitto-MQTT-broker) for one way to set up a broker. Test something like the following, from two different shell sessions:
+
+```shell
+# .. mosquitto_sub ...
+mosquitto_sub -v -d -h mqttbrokerhost -t test/topic1
+# .. mosquitto_pub ...
+mosquitto_pub    -d -h mqttbrokerhost -t test/topic1 -m "helo"
+```
+
+now proceed to the next section: "Install"
+
+Install
 -------
 
-Steps to run on computer for webserver (in a git clone of this repo). We rely on python3's built-in `venv` module for dependencies.
+Steps to run on webapp host (from a git clone of this repo).
 
-```bash
-cd python-flask-socketio-server
-python3 -m venv env
-source env/bin/activate
-pip install flask
-pip install flask-socketio
-pip install wheel # not required; avoids pyyaml or paho-mqtt bdist_wheel error
-pip install paho-mqtt
-pip install pyyaml
+grab a copy of this repo using git
+
+```shell
+mkdir ~/projects
+cd ~/projects
+git clone https://github.com/idcrook/shairport-sync-mqtt-display.git
+cd shairport-sync-mqtt-display
 ```
 
-config
-------
+We rely on python3's built-in `venv` module for python library dependencies.
 
-Copy the example config file and customize.
+```shell
+cd ~/projects/shairport-sync-mqtt-display
+cd python-flask-socketio-server
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
+
+### Configure
+
+Copy the example config file (`config.example.yaml`) to a new file and customize.
 
 ```shell
 cp config.example.yaml config.secrets.yaml
 $EDITOR config.secrets.yaml # $EDITOR would be nano, vi, etc.
 ```
 
-1.	Configure the MQTT section (`mqtt:`) to reflect your environment.
+#### Configure the MQTT section (`mqtt:`) to reflect your environment.
 
-	-	For the `topic`, I use something like `shairport-sync/SSHOSTNAME`
-		-	this `topic` needs to match the `mqtt.topic` string in your `/etc/shairport-sync.conf` file
-		-	`SSHOSTNAME` is the name of where `shairport-sync` is running
-		-	Note, there is **no** leading slash ('`/`') in the `topic` string
-	-	Use the same mqtt broker for `host` that you did in your MQTT broker config testing and `shairport-sync.conf`
+For the *`topic`*, I use something like `shairport-sync/SS_HOSTNAME`
 
-2.	Customize the webpage UI section (`webui:`) if desired.
+-	*`topic`* needs to match the `mqtt.topic` string in your `/etc/shairport-sync.conf` file
+-	`SS_HOSTNAME` is name of server where `shairport-sync` is running
+-	Note, there is **no** leading slash ('`/`') in the `topic` string
 
-running
-=======
+Use the same mqtt broker for `host` that you did in your MQTT broker config testing and `shairport-sync.conf`
+
+You may need to add an entry for `mqtthostname` to  [/etc/hosts file](#name-or-service-not-known).
+
+#### Customize the webpage UI section (`webui:`) if desired.
+
+Controls like buttons appearing are set here.
+
+### Testing / Running
 
 Assumed music playing using AirPlay® (e.g. iTunes®), an MQTT broker, and `shairport-sync` with MQTT support are already online. Also assumes that `config.yaml` has been configured to match your home network environment.
 
 ```bash
-# this is the python virtual environment we installed into
-source env/bin/activate
+cd ~/projects/shairport-sync-mqtt-display
+cd python-flask-socketio-server
+# this is the python virtual environment we installed into earlier
+source venv/bin/activate
 python app.py
 # open it in your web browser, e.g.: open http://0.0.0.0:8080
 ```
 
 Use IP address (in place of `0.0.0.0`) to connect from [other devices on your network](#browser-address-to-connect-to-on-home-network)
+
+Here's an example startup
+
+ > Using default cover image file /Users/dpc/projects/webdev/shairport-sync-mqtt-display/python-flask-socketio-server/static/img/default.png
+ > Using config file /Users/dpc/projects/webdev/shairport-sync-mqtt-display/python-flask-socketio-server/config.yaml
+ > shairport-sync/rpih1
+ > Enabling MQTT logging
+ > Connecting to broker rpihp1 port 1883
+ > Starting webserver
+ >    http://:::8080
+ > WebSocket transport not available. Install eventlet or gevent and gevent-websocket for improved performance.
+ > topic shairport-sync/rpih1/artist  * Serving Flask app "app" (lazy loading)
+ > 1
+ >  * Environment: production
+ > topic shairport-sync/rpih1/album    WARNING: This is a development server. Do not use it in a production deployment.
+ >    Use a production WSGI server instead.
+ >  * Debug mode: off
+ > 2
+ > topic shairport-sync/rpih1/title 3
+ > topic shairport-sync/rpih1/genre 4
+ > topic shairport-sync/rpih1/songalbum 5
+ > topic shairport-sync/rpih1/volume 6
+ > topic shairport-sync/rpih1/client_ip 7
+ > topic shairport-sync/rpih1/active_start 8
+ > topic shairport-sync/rpih1/active_end 9
+ > topic shairport-sync/rpih1/play_start 10
+ > topic shairport-sync/rpih1/play_end 11
+ > topic shairport-sync/rpih1/play_flush 12
+ > topic shairport-sync/rpih1/play_resume 13
+ > topic shairport-sync/rpih1/cover 14
+ >  * Running on http://[::]:8080/ (Press CTRL+C to quit)
 
 Automatically launch webserver on boot
 --------------------------------------
@@ -122,10 +177,10 @@ If you get an error like
 socket.gaierror: [Errno -2] Name or service not known
 ```
 
-you should add the mqtt broker host that you are using to `/etc/hosts` on the computer that is hosting the webserver apple. For example, and entry like:
+you should add the mqtt broker host that you are using to `/etc/hosts` on the computer that is running this Flask webserver app. For example, an entry like:
 
 ```
-192.168.1.42 rpi
+192.168.1.42 mqtthostname
 ```
 
 #### Browser address to connect to on home network
