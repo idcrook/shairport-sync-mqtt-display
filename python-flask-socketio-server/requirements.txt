@@ -1,5 +1,5 @@
 flask
-flask-socketio
+flask-socketio==4.3.2
 # wheel should not be needed, but avoids pyyaml paho-mqtt bdist_wheel error
 wheel
 paho-mqtt
