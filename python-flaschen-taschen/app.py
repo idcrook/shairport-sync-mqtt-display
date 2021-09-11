@@ -23,7 +23,7 @@ import flaschen
 mypath = Path().absolute()
 
 # Load a default image file
-default_image_file = mypath / ".." / "python-flask-socketio-server" / "static" / "img" / "default.png"
+default_image_file = mypath / ".." / "python-flask-socketio-server" / "static" / "img" / "default-inverted.png"
 print("Using default cover image file {}".format(default_image_file))
 
 # App will die here if config file is missing.
