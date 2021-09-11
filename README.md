@@ -2,7 +2,7 @@
 
 Utilities to display [`shairport-sync`](https://github.com/mikebrady/shairport-sync) metadata (via MQTT)<sup id="a1">[1](#f1)</sup>
 
-See [REQUIREMENTS](REQUIREMENTS.md) for other things you'll need (like AirPlay source, AirPlay receiver such as `shairport-sync`, MQTT broker, and software or hardware renderers/displays.
+See [REQUIREMENTS](REQUIREMENTS.md) for other things you'll need (like AirPlay source, AirPlay receiver such as `shairport-sync`, MQTT broker, and software or hardware renderers/displays).
 
 ### Webserver webapp
 
