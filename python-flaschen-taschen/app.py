@@ -103,11 +103,11 @@ known_remote_commands = [
 ]
 
 def flaschenSendThumbnailImage(client, image):
-    for x in range(FLASCHEN_ROWS):
+    for x in range(FLASCHEN_COLS):
         for y in range(FLASCHEN_ROWS):
+            # these will be RGBA
             color = image.getpixel((x, y))
             client.set(x, y, (color[0], color[1], color[2]))
-    print (x, y)
     client.send()
 
 def on_connect(client, userdata, flags, rc):
@@ -139,28 +139,30 @@ def on_message(client, userdata, message):
 
     # cover art
     if message.topic == _form_subtopic_topic("cover"):
-        # print("cover update")
         if message.payload:
-            # image = base64.b64encode(message.payload).decode("utf-8")
-            image = DEFAULT_IMAGE
+            image = createMatrixImage(io.BytesIO(message.payload))
         else:
             image = DEFAULT_IMAGE
         msg = {"data": image}
         SAVED_INFO["cover_art"] = msg
         flaschenSendThumbnailImage(flaschen_client, image)
-        #socketio.emit("cover_art", msg)
+
+def createMatrixImage(fileobj):
+    with Image.open(fileobj) as image:
+        size = FLASCHEN_SIZE
+        if hasattr(fileobj, 'name'):
+            print(fileobj.name, end=' ')
+        print(image.format, f"{image.size} x {image.mode}")
+        image.thumbnail(size, Image.ANTIALIAS)
+        background = Image.new('RGBA', size, (255, 255, 255, 0))
+        background.paste(image, (int((size[0] - image.size[0]) / 2), int((size[1] - image.size[1]) / 2)))
+        return background
 
 # Load default image
-with Image.open(default_image_file.as_posix()) as image:
-    size = FLASCHEN_SIZE
-    print(default_image_file.name, image.format, f"{image.size}x{image.mode}")
-    image.thumbnail(size, Image.ANTIALIAS)
-    background = Image.new('RGBA', size, (255, 255, 255, 0))
-    background.paste(image, (int((size[0] - image.size[0]) / 2), int((size[1] - image.size[1]) / 2)))
-    DEFAULT_IMAGE = background
-    print(DEFAULT_IMAGE)
+DEFAULT_IMAGE = createMatrixImage(default_image_file)
+print(DEFAULT_IMAGE)
 
-# FIXME: handle errors better
+# FIXME: handle netword errors better
 flaschen_client = flaschen.Flaschen(FLASCHEN_SERVER,
                                     FLASCHEN_PORT,
                                     FLASCHEN_COLS,
