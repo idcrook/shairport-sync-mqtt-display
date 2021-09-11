@@ -2,28 +2,12 @@
 
 `circuitpython_char_lcd` works in conjunction with [`shairport-sync`](https://github.com/mikebrady/shairport-sync) + MQTT and an Adafruit<sup id="a1">[1](#f1)</sup> 16x2 Character LCD Display on a Raspberry Pi. It has remote-control support.
 
-If you build [`shairport-sync`](https://github.com/mikebrady/shairport-sync) from source on your Raspberry Pi, you should be able to get this working.
+If you can build [`shairport-sync`](https://github.com/mikebrady/shairport-sync) from source on your Raspberry Pi, you should be able to get this working.
 
 Before we begin
 ===============
 
-First, some requirements for your home network.
-
-1.	*AirPlay®* source<sup id="a2">[2](#f2)</sup>
-
-2.	*`shairport-sync`* as AirPlay® receiver
-
-	-	`shairport-sync` needs to be built with *MQTT support*. See [wiki - Build shairport-sync](https://github.com/idcrook/shairport-sync-mqtt-display/wiki/Build-shairport-sync-with-MQTT-support)
-
-3.	*MQTT broker*
-
-	-	An MQTT broker, like `mosquitto`, visible on same network. See [wiki - Configure MQTT broker](https://github.com/idcrook/shairport-sync-mqtt-display/wiki/Configure-mosquitto-MQTT-broker)
-
-4.	*Display*
-
-	-	A Raspberry Pi for running the [CircuitPython](https://learn.adafruit.com/circuitpython-on-raspberrypi-linux/installing-circuitpython-on-raspberry-pi) script with a Character LCD display attached. A keypad for performing as a remote control is optional, but a nice feature.
-
-Requirements 2., 3., and 4. can all be hosted on a single Raspberry Pi®
+First, see [REQUIREMENTS](../REQUIREMENTS.md) for your home network.
 
 For app developement, Adafruit's [Adafruit RGB Negative 16x2 LCD+Keypad Kit for Raspberry Pi](https://www.adafruit.com/product/1110) LCD Pi Plate was used.
 
@@ -37,18 +21,8 @@ See [wiki](https://github.com/idcrook/shairport-sync-mqtt-display/wiki) for addi
 Quickstart
 ----------
 
-Install python dependencies and clone this repo
+Install system python dependencies and clone this repo. See [REQUIREMENTS Quickstart](../REQUIREMENTS.md#quickstart)
 
-```bash
-# Install a python3 dev setup and other libraries
-sudo apt install -y python3-pip python3-venv build-essential \
-    python3-setuptools python3-wheel git mosquitto-clients
-
-# grab a copy of this repo
-git clone https://github.com/idcrook/shairport-sync-mqtt-display.git
-cd shairport-sync-mqtt-display
-# now proceed to the next section: "install"
-```
 
 install
 -------
@@ -162,11 +136,3 @@ Original development setup:
 ---
 
 <i id="f1">1</i>: Trademarks are the respective property of their owners.[⤸](#a1)
-
-<i id="f2">2</i>: This could be
-
--	iTunes® on a computer.
--	Music* app in iOS™.
--	Rogue Amoeba's [Airfoil](https://rogueamoeba.com/airfoil/) app
-
-[⤸](#a2)

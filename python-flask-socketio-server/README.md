@@ -14,64 +14,17 @@
 Before we begin
 ===============
 
-First, some requirements for your home network. Requirements 2., 3., and 4. can all be hosted on the same computer, including a single Raspberry Pi®
+First, see [REQUIREMENTS](../REQUIREMENTS.md) for your home network.
 
-1.	*AirPlay®* source
-	-	iTunes® or Music app in iOS™/macOS
-	-	Rogue Amoeba's [Airfoil](https://rogueamoeba.com/airfoil/) app (which can send Spotify artwork from macOS)
-2.	AirPlay® receiver
-	-	For us, this is **`shairport-sync`** built with *MQTT support*. See [Build shairport-sync - wiki](https://github.com/idcrook/shairport-sync-mqtt-display/wiki/Build-shairport-sync-with-MQTT-support-on-Raspberry-Pi)
-3.	*MQTT broker*
-	-	MQTT broker like `mosquitto`, visible on same network. See [Configure MQTT broker - wiki](https://github.com/idcrook/shairport-sync-mqtt-display/wiki/Configure-mosquitto-MQTT-broker)
-4.	*Webserver*
-	-	Any computer that can run this Python 3-based webserver app (tested on macOS™ and Raspbian)
+One final requirement: A computer or other device with a web browser to display the live-streamed webpage.
 
-One final requirement: A web browser to display the webpage.
+Quickstart
+----------
 
-Let's Go!
----------
-
-For our purposes, this guide assumes:
-
--	a Raspberry Pi running Raspbian `buster`
--	with AirPlay receiver and MQTT broker running on same Raspberry Pi as this webapp.
-
-See [wiki](https://github.com/idcrook/shairport-sync-mqtt-display/wiki) for additional pointers.
-
-Requirements
-------------
-
-Install a python3 development setup and other libraries
-
-```shell
-sudo apt install -y python3-pip python3-venv \
-    python3-setuptools python3-wheel mosquitto-clients
-```
-
-Validate your MQTT broker config. See [Configure MQTT broker - wiki](https://github.com/idcrook/shairport-sync-mqtt-display/wiki/Configure-mosquitto-MQTT-broker) for one way to set up a broker. Test something like the following, from two different shell sessions:
-
-```shell
-# .. mosquitto_sub ...
-mosquitto_sub -v -d -h mqttbrokerhost -t test/topic1
-# .. mosquitto_pub ...
-mosquitto_pub    -d -h mqttbrokerhost -t test/topic1 -m "helo"
-```
-
-now proceed to the next section: "Install"
+Install system python dependencies and clone this repo. See [REQUIREMENTS Quickstart](../REQUIREMENTS.md#quickstart)
 
 Install
 -------
-
-Steps to run on webapp host (from a git clone of this repo).
-
-grab a copy of this repo using git
-
-```shell
-mkdir ~/projects
-cd ~/projects
-git clone https://github.com/idcrook/shairport-sync-mqtt-display.git
-cd shairport-sync-mqtt-display
-```
 
 We rely on python3's built-in `venv` module for python library dependencies.
 

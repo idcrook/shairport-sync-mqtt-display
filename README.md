@@ -2,6 +2,8 @@
 
 Utilities to display [`shairport-sync`](https://github.com/mikebrady/shairport-sync) metadata (via MQTT)<sup id="a1">[1](#f1)</sup>
 
+See [REQUIREMENTS](REQUIREMENTS.md) for other things you'll need (like AirPlay source, AirPlay receiver such as `shairport-sync`, MQTT broker, and software or hardware renderers/displays.
+
 ### Webserver webapp
 
 [python-flask-socketio-server](python-flask-socketio-server/#readme) - [README.md](python-flask-socketio-server/README.md)
@@ -21,7 +23,15 @@ Utilities to display [`shairport-sync`](https://github.com/mikebrady/shairport-s
 -	Playback remote control and volume support.
 -	Tested using CircuitPython i2c LCD library on a Raspberry Pi.
 
-![Photo - Running on as Raspberry Pi](circuitpython_char_lcd/photo1.jpg "Running on a Pi with 16x2 Character LCD display")
+![Photo - Running on Raspberry Pi](circuitpython_char_lcd/photo1.jpg "Running on a Pi with 16x2 Character LCD display")
+
+### Display album art thumbnails on HUB75 LED Panels
+
+[python-flaschen-taschen](python-flaschen-taschen/#readme) - [python-flaschen-taschen](python-flaschen-taschen/README.md)
+
+-	Tested with 32 x 32 RGB LED panels
+
+![Photo - Running on Raspberry Pi with HUB75 LED panel](python-flaschen-taschen/photo1.jpg "Running on a Pi with 32x32 RGB LED Panel")
 
 ### LICENSE
 

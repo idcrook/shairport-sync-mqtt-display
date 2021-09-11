@@ -16,29 +16,15 @@ See [wiki](https://github.com/idcrook/shairport-sync-mqtt-display/wiki) for addi
 Requirements
 ------------
 
-Install a python3 development setup and other libraries
-
-```shell
-sudo apt install -y python3-pip python3-venv python3-pillow \
-    python3-setuptools python3-wheel
-```
+Install system python dependencies and clone this repo. See [REQUIREMENTS Quickstart](../REQUIREMENTS.md#quickstart)
 
 Install
 -------
 
-
-grab a copy of this repo using git
-
-```shell
-mkdir ~/projects
-cd ~/projects
-git clone https://github.com/idcrook/shairport-sync-mqtt-display.git
-cd shairport-sync-mqtt-display
-```
-
-We rely on python3's built-in `venv` module for python library dependencies.
+We rely on python3's built-in `venv` module for python library dependencies, and PIL [Pillow — documentation](https://pillow.readthedocs.io/en/stable/) for image manipulation.
 
 ```shell
+sudo apt install python3-pillow
 cd ~/projects/shairport-sync-mqtt-display
 cd python-flaschen-taschen
 python3 -m venv venv
