@@ -63,6 +63,23 @@ For the *`topic`*, I use something like `shairport-sync/SS_HOSTNAME`
 -	`SS_HOSTNAME` is name of server where `shairport-sync` is running
 -	Note, there is **no** leading slash ('`/`') in the `topic` string
 
+Testing
+--------------
+
+in terminal
+
+```console
+$ make FT_BACKEND=terminal
+$ ./ft-server -D32x32 --hd-terminal
+UDP-server: ready to listen on 1337
+```
+
+on rgb-matrix
+
+```shell
+make FT_BACKEND=rgb-matrix
+sudo ./ft-server --led-gpio-mapping=adafruit-hat --led-slowdown-gpio=2 --led-rows=32 --led-cols=32 --led-show-refresh --led-brightness=50
+```
 
 Automatically launch on boot
 --------------------------------------
