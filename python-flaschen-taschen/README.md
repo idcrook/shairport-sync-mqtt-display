@@ -1,0 +1,91 @@
+`python-flaschen-taschen`
+==============================
+
+![](photo.png "running")
+
+Let's Go!
+---------
+
+For our purposes, this guide assumes:
+
+-	Raspberry Pi running Raspbian `buster`
+-	with AirPlay receiver and MQTT broker running on same Raspberry Pi as this webapp.
+
+See [wiki](https://github.com/idcrook/shairport-sync-mqtt-display/wiki) for additional pointers.
+
+Requirements
+------------
+
+Install a python3 development setup and other libraries
+
+```shell
+sudo apt install -y python3-pip python3-venv python3-pillow \
+    python3-setuptools python3-wheel
+```
+
+Install
+-------
+
+
+grab a copy of this repo using git
+
+```shell
+mkdir ~/projects
+cd ~/projects
+git clone https://github.com/idcrook/shairport-sync-mqtt-display.git
+cd shairport-sync-mqtt-display
+```
+
+We rely on python3's built-in `venv` module for python library dependencies.
+
+```shell
+cd ~/projects/shairport-sync-mqtt-display
+cd python-flaschen-taschen
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
+
+### Configure
+
+Copy the example config file (`config.example.yaml`) to a new file and customize.
+
+```shell
+cp config.example.yaml config.secrets.yaml
+$EDITOR config.secrets.yaml # $EDITOR would be nano, vi, etc.
+```
+
+#### Configure the MQTT section (`mqtt:`) to reflect your environment.
+
+For the *`topic`*, I use something like `shairport-sync/SS_HOSTNAME`
+
+-	*`topic`* needs to match the `mqtt.topic` string in your `/etc/shairport-sync.conf` file
+-	`SS_HOSTNAME` is name of server where `shairport-sync` is running
+-	Note, there is **no** leading slash ('`/`') in the `topic` string
+
+
+Automatically launch on boot
+--------------------------------------
+
+There's a `systemd` service file at `/etc/shairport-sync_rgb-matrix-server.service` in this git repository.
+
+There's a `systemd` service file at `/etc/shairport-sync_rgb-matrix-client.service` in this git repository.
+
+troubleshooting running
+-----------------------
+
+#### Name or service not known
+
+If you get an error like
+
+```
+socket.gaierror: [Errno -2] Name or service not known
+```
+
+you should add the mqtt broker host that you are using to `/etc/hosts` on the computer that is running this Flask webserver app. For example, an entry like:
+
+```
+192.168.1.42 mqtthostname
+```
+
+---
