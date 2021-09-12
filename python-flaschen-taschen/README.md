@@ -26,7 +26,9 @@ We rely on python3's built-in `venv` module for python library dependencies.
 The album art manipulation will be handled by PIL (Python Imaging Library) [Pillow](https://pillow.readthedocs.io/en/stable/).
 
 ```shell
+# useful for having PIL in REPL in system python3
 sudo apt install python3-pillow
+
 cd ~/projects/shairport-sync-mqtt-display
 cd python-flaschen-taschen
 python3 -m venv venv

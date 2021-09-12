@@ -1,9 +1,7 @@
 Requirements
 ============
 
-These are helpers for exposing *Apple*<sup id="a1">[1](#f1)</sup> *AirPlay®* metadata.
-
-All the utilities rely on [`shairport-sync`](https://github.com/mikebrady/shairport-sync) + MQTT configured with metadata support.
+These are helpers for exposing *Apple*<sup id="a1">[1](#f1)</sup> *AirPlay®* metadata. All the helper utilities rely on [`shairport-sync`](https://github.com/mikebrady/shairport-sync) built/configured with MQTT and metadata support.
 
 Hardware and Network Requirements
 =================================
@@ -15,12 +13,13 @@ Before we begin, first, some requirements for your home network. Requirements 2.
 2.	*`shairport-sync`* as AirPlay® receiver
 
 	-	`shairport-sync` needs to be built with *MQTT support*.
+	-	`shairport-sync` needs to be built with *metadata support*.
 	-	It also needs to properly configured to connect to MQTT broker.
 	-	See [wiki - Build shairport-sync with MQTT support on Raspberry Pi](https://github.com/idcrook/shairport-sync-mqtt-display/wiki/Build-shairport-sync-with-MQTT-support-on-Raspberry-Pi)
 
 3.	*MQTT broker*
 
-	-	An MQTT broker, like `mosquitto`, visible on same network.
+	-	An MQTT broker, such as `mosquitto`, available on same network.
 	-	See [wiki - Configure MQTT broker](https://github.com/idcrook/shairport-sync-mqtt-display/wiki/Configure-mosquitto-MQTT-broker)
 
 4.	*Renderer*
@@ -49,8 +48,6 @@ See [wiki](https://github.com/idcrook/shairport-sync-mqtt-display/wiki) for addi
 
 **IMPORTANT**: Validate your MQTT broker config. See [Configure MQTT broker - wiki](https://github.com/idcrook/shairport-sync-mqtt-display/wiki/Configure-mosquitto-MQTT-broker) for one way to set up a broker.
 
-As described above, `shairport-sync` will need to be built with MQTT and metadata support. See [wiki - Build shairport-sync with MQTT support on Raspberry Pi](https://github.com/idcrook/shairport-sync-mqtt-display/wiki/Build-shairport-sync-with-MQTT-support-on-Raspberry-Pi)
-
 Test something like the following, done by using two separate shell sessions:
 
 ```shell
@@ -60,6 +57,8 @@ mosquitto_sub -v -d -h mqttbrokerhost -t test/topic1
 # .. mosquitto_pub ...
 mosquitto_pub    -d -h mqttbrokerhost -t test/topic1 -m "helo"
 ```
+
+As mentioned above, `shairport-sync` will need to be built with MQTT and metadata support. See [wiki - Build shairport-sync with MQTT support on Raspberry Pi](https://github.com/idcrook/shairport-sync-mqtt-display/wiki/Build-shairport-sync-with-MQTT-support-on-Raspberry-Pi)
 
 Quickstart
 ----------
