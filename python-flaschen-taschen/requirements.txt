@@ -1,3 +1,4 @@
+wheel
 paho-mqtt
 pyyaml
 Pillow

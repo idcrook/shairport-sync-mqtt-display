@@ -20,7 +20,7 @@ See [REQUIREMENTS](REQUIREMENTS.md) for other things you'll need (like AirPlay s
 [circuitpython_char_lcd](circuitpython_char_lcd/#readme) - [README.md](circuitpython_char_lcd/README.md)
 
 -	Configurable display and UI.
--	Playback remote control and volume support.
+-	Remote control support for Playback and Volume
 -	Tested using CircuitPython i2c LCD library on a Raspberry Pi.
 
 ![Photo - Running on Raspberry Pi](circuitpython_char_lcd/photo1.jpg "Running on a Pi with 16x2 Character LCD display")
@@ -29,7 +29,7 @@ See [REQUIREMENTS](REQUIREMENTS.md) for other things you'll need (like AirPlay s
 
 [python-flaschen-taschen](python-flaschen-taschen/#readme) - [python-flaschen-taschen](python-flaschen-taschen/README.md)
 
--	Tested with 32 x 32 RGB LED panels
+-	Tested with 32 x 32 matrix RGB LED  panels
 
 ![Photo - Running on Raspberry Pi with HUB75 LED panel](python-flaschen-taschen/photo1.jpg "Running on a Pi with 32x32 RGB LED Panel")
 

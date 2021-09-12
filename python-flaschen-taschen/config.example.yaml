@@ -1,7 +1,7 @@
 ---
 mqtt:
-  topic: 'topic/in/shairport-sync'  # there should NOT be a leading slash!
-  host: raspimqtt  # ideally a resolvable hostname (e.g. /etc/host entry)
+  topic: 'shairport-sync/SS_HOSTNAME'  # there should NOT be a leading slash!
+  host: raspimqtt  # a resolvable hostname (e.g. /etc/host entry)
   port: 1883
   username: null
   password: null
@@ -11,13 +11,13 @@ mqtt:
     certfile_path: null
     keyfile_path: null
   logger: true
-  
+
 flaschen:
   server: localhost
   port: 1337
   led-rows: 32
   led-columns: 32
-  
+
 # ---
 # mqtt:
 #   topic: 'shairport-sync/name'
