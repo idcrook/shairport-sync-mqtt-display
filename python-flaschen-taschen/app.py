@@ -20,7 +20,7 @@ from PIL import Image  #, ImageOps
 import flaschen
 
 # determine path to this script
-mypath = Path().absolute()
+mypath = Path(__file__).resolve().parent
 
 # Load a default image file
 default_image_file = mypath / ".." / "python-flask-socketio-server" / "static" / "img" / "default-inverted.png"
@@ -147,6 +147,11 @@ def on_message(client, userdata, message):
         SAVED_INFO["cover_art"] = msg
         flaschenSendThumbnailImage(flaschen_client, image)
 
+    # clear matrix when inactive
+    if message.topic == _form_subtopic_topic("active_end"):
+        image = Image.new('RGBA', FLASCHEN_SIZE, (0, 0, 0, 0))
+        flaschenSendThumbnailImage(flaschen_client, image)
+
 def createMatrixImage(fileobj):
     with Image.open(fileobj) as image:
         size = FLASCHEN_SIZE
@@ -154,7 +159,7 @@ def createMatrixImage(fileobj):
             print(fileobj.name, end=' ')
         print(image.format, f"{image.size} x {image.mode}")
         image.thumbnail(size, Image.ANTIALIAS)
-        background = Image.new('RGBA', size, (255, 255, 255, 0))
+        background = Image.new('RGBA', size, (0, 0, 0, 0))
         background.paste(image, (int((size[0] - image.size[0]) / 2), int((size[1] - image.size[1]) / 2)))
         return background
 
