@@ -12,7 +12,7 @@
 [Unit]
 Description=Shairport-sync MQTT Remote Control and Metadata Webserver
 Documentation=https://github.com/idcrook/shairport-sync-mqtt-display
-After=network.target time-sync.target mosquitto.service
+After=network.target network-online.target
 # After=network.target time-sync.target
 ConditionPathExists=/home/pi/projects/shairport-sync-mqtt-display/python-flask-socketio-server/etc
 
