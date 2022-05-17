@@ -58,8 +58,11 @@
   <!-- Bootstrap JS local fallback -->
   <script>if(typeof($.fn.modal) === 'undefined') {document.write("<script src=\"{{ url_for('static', filename='js/bootstrap.min.js') }}\"><\/script>")}</script>
 
+  <!-- bootstrap-slider JS -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/10.6.2/bootstrap-slider.min.js" integrity="sha256-oj52qvIP5c7N6lZZoh9z3OYacAIOjsROAcZBHUaJMyw=" crossorigin="anonymous"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.1/socket.io.slim.js" integrity="sha512-zFabje6sbO9o8oJPCDp9ltdnkxSI+Z9XooA/mWyh68E9Of+Tc/7Evit0MGccDVHUFRcpN/TIscS1xT4s+acseg==" crossorigin="anonymous"></script>
+  
+  <!-- socket.io v4 JS FIXME: add local fallback? -->
+  <script src="https://cdn.socket.io/4.5.0/socket.io.min.js" integrity="sha384-7EyYLQZgWBi67fBtVxw60/OWl1kjsfrPFcaU0pp0nAh+i8FD068QogUvg85Ewy1k" crossorigin="anonymous"></script>
 
   {% endblock %}
 </head>
