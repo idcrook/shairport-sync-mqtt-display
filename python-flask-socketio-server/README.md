@@ -33,7 +33,7 @@ cd ~/projects/shairport-sync-mqtt-display
 cd python-flask-socketio-server
 python3 -m venv venv
 source venv/bin/activate
-pip install -r requirements.txt
+pip install --no-cache-dir -r requirements.txt
 ```
 
 ### Configure
