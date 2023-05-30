@@ -30,6 +30,7 @@ install
 python3's `venv` module is used for maintaining our dependencies.
 
 ```bash
+sudo apt install python3-venv
 cd circuitpython_char_lcd/
 python3 -m venv .venv
 source .venv/bin/activate
@@ -72,7 +73,7 @@ Assumed music playing using AirPlay® (e.g. iTunes®), an MQTT broker, and `shai
 
 ```bash
 # this is the python virtual environment we installed into
-source env/bin/activate
+source .venv/bin/activate
 python mqtt_lcd_display.py
 # info should be displayed on the lcd
 ```
