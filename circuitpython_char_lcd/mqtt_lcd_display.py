@@ -21,7 +21,7 @@ import board
 import busio
 import adafruit_character_lcd.character_lcd_rgb_i2c as character_lcd
 import paho.mqtt.client as mqtt
-from yaml import safe_load
+import tomli
 
 try:
     from colorthief import ColorThief  # pip install colorthief
@@ -36,10 +36,10 @@ mypath = Path().absolute()
 
 # App will die here if config file is missing.
 # Read only on startup. If edited, app must be relaunched to see changes
-config_file = mypath / "config.yaml"
+config_file = mypath / "config.toml"
 print("Using config file {}".format(config_file))
-with config_file.open() as f:
-    config = safe_load(f)
+with config_file.open(mode='rb') as f:
+    config = tomli.load(f)
 
 # subtrees of the config file
 MQTT_CONF = config["mqtt"]  # required section

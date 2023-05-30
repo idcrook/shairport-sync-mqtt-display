@@ -36,8 +36,6 @@ python3 -m venv .venv
 source .venv/bin/activate
 pip3 install adafruit-circuitpython-charlcd
 pip3 install paho-mqtt
-pip3 install wheel # not required; avoids a pyyaml benign build error
-pip3 install pyyaml
 pip3 install tomli
 
 # required for backlight color analysis
@@ -52,8 +50,8 @@ config
 Copy the example config file and customize.
 
 ```shell
-cp config.example.yaml config.secrets.yaml
-$EDITOR config.secrets.yaml # $EDITOR would be nano, vi, etc.
+cp config.example.toml config.secrets.toml
+$EDITOR config.secrets.toml # $EDITOR would be nano, vi, etc.
 ```
 
 1.	Configure the MQTT section (`mqtt:`) to reflect your environment.
@@ -69,7 +67,7 @@ $EDITOR config.secrets.yaml # $EDITOR would be nano, vi, etc.
 running
 =======
 
-Assumed music playing using AirPlay® (e.g. iTunes®), an MQTT broker, and `shairport-sync` with MQTT support are already online. Also assumes that `config.yaml` has been configured to match your home network environment.
+Assumed music playing using AirPlay® (e.g. iTunes®), an MQTT broker, and `shairport-sync` with MQTT support are already online. Also assumes that `config.toml` has been configured to match your home network environment.
 
 ```bash
 # this is the python virtual environment we installed into
