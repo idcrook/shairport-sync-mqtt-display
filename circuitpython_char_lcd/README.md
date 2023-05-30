@@ -31,15 +31,15 @@ python3's `venv` module is used for maintaining our dependencies.
 
 ```bash
 cd circuitpython_char_lcd/
-python3 -m venv env
-source env/bin/activate
-pip install adafruit-circuitpython-charlcd
-pip install paho-mqtt
-pip install wheel # not required; avoids a pyyaml benign build error
-pip install pyyaml
+python3 -m venv .venv
+source .venv/bin/activate
+pip3 install adafruit-circuitpython-charlcd
+pip3 install paho-mqtt
+pip3 install wheel # not required; avoids a pyyaml benign build error
+pip3 install pyyaml
 
 # required for backlight color analysis
-pip install colorthief
+pip3 install colorthief
 sudo apt install libtiff5      # needed on stretch
 sudo apt install libopenjp2-7  # needed on buster
 ```
