@@ -37,6 +37,7 @@ pip3 install adafruit-circuitpython-charlcd
 pip3 install paho-mqtt
 pip3 install wheel # not required; avoids a pyyaml benign build error
 pip3 install pyyaml
+pip3 install tomli
 
 # required for backlight color analysis
 pip3 install colorthief

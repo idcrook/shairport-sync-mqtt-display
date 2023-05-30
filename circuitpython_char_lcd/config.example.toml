@@ -1,0 +1,33 @@
+
+[mqtt]
+topic = "topic/in/shairport-sync"  # there should NOT be a leading slash!
+host = "raspi"  # ideally this is a resolvable hostname (e.g. /etc/host entry)
+port = 1883
+use_tls = false
+logger = true
+
+[mqtt.tls]
+ca_certs_path = "/path/to/ca_certs" # can be chained.pem or directory
+certfile_path = "client_certificate.crt"
+keyfile_path = "key.pem"
+# only for debugging # allow_insecure_server_certificate =  false
+
+
+[displayui]
+show_lcd_splash = true
+show_track_metadata = true
+update_backlight_color = false # true will add cover art metadata/processing
+default_rgb_backlight_color = [ 255, 255, 255,]  # LCD may not support PWM colors
+track_metadata = [ "artist", "title",]
+# track_metadata = [ "artist", "album", "title", "genre"]
+
+[remotecontrol]
+remote_controls = true
+
+[remotecontrol.buttons]
+button_down = "volumedown"
+button_left = "previtem"
+button_right = "nextitem"
+button_select = "playpause"
+button_up = "volumeup"
+
