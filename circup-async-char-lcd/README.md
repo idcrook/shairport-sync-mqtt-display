@@ -33,14 +33,15 @@ python3's `venv` module is used for maintaining our dependencies.
 sudo apt install python3-pip
 sudo apt install python3-venv
 cd circup-async-char-lcd/
+
 python3 -m venv .venv
 source .venv/bin/activate
-pip3 install adafruit-circuitpython-charlcd
-pip3 install paho-mqtt
-pip3 install tomli
+pip install adafruit-circuitpython-charlcd
+pip install paho-mqtt
+pip install tomli
 
-# required for backlight color analysis
-pip3 install colorthief
+# Optional: For backlight color analysis
+pip install colorthief
 sudo apt install libtiff5      # needed on stretch
 sudo apt install libopenjp2-7  # needed on buster
 sudo apt install libopenjp2-7  # needed on bullseye
