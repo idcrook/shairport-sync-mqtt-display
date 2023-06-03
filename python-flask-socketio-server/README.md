@@ -31,8 +31,8 @@ We rely on python3's built-in `venv` module for python library dependencies.
 ```shell
 cd ~/projects/shairport-sync-mqtt-display
 cd python-flask-socketio-server
-python3 -m venv venv
-source venv/bin/activate
+python3 -m venv .venv
+source .venv/bin/activate
 pip install --no-cache-dir -r requirements.txt
 ```
 
@@ -69,7 +69,7 @@ Assumed music playing using AirPlay® (e.g. iTunes®), an MQTT broker, and `shai
 cd ~/projects/shairport-sync-mqtt-display
 cd python-flask-socketio-server
 # this is the python virtual environment we installed into earlier
-source venv/bin/activate
+source .venv/bin/activate
 python app.py
 # open it in your web browser, e.g.: open http://0.0.0.0:8080
 ```
