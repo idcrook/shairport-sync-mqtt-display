@@ -1,0 +1,26 @@
+# # -*- systemd -*-
+# - uses virtualenv python version
+# cd /home/pi/projects/shairport-sync-mqtt-display/circuitpython_char_lcd/etc
+# sudo cp shairport-sync_charlcd.service  /lib/systemd/system/shairport-sync_charlcd@.service
+# sudo chmod 644 /lib/systemd/system/shairport-sync_charlcd@.service
+# sudo systemctl daemon-reload
+# sudo systemctl enable shairport-sync_charlcd@pi.service
+# sudo systemctl status shairport-sync_charlcd@pi.service
+# sudo systemctl start  shairport-sync_charlcd@pi.service
+# journalctl -u shairport-sync_charlcd@pi.service
+
+[Unit]
+Description=Shairport-sync MQTT Remote Control and LCD Display
+Documentation=https://github.com/idcrook/shairport-sync-mqtt-display
+After=network.target time-sync.target
+ConditionPathExists=/home/pi/projects/shairport-sync-mqtt-display/circuitpython_char_lcd/etc
+
+[Service]
+Type=simple
+WorkingDirectory=/home/pi/projects/shairport-sync-mqtt-display/circuitpython_char_lcd
+ExecStart=/home/pi/projects/shairport-sync-mqtt-display/circuitpython_char_lcd/env/bin/python \
+          /home/pi/projects/shairport-sync-mqtt-display/circuitpython_char_lcd/mqtt_lcd_display.py
+User=pi
+
+[Install]
+WantedBy=default.target
