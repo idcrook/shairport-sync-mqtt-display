@@ -76,7 +76,8 @@ known_core_metadata_types = {
 def populateTemplateData(config):
     """Use values from config file to form templateData for HTML template.
 
-    Set default value if the key is not found in config (second arg in dict.get())"""
+    Set default value if the key is not found in config (second arg in dict.get())
+    """
     templateData = {}
 
     if config.get("show_player", True):
@@ -144,7 +145,6 @@ known_remote_commands = [
 
 def _generate_remote_command(command):
     """Return MQTT topic and message for a given remote command."""
-
     if command in known_remote_commands:
         print(command)
         topic = TOPIC_ROOT + "/remote"
@@ -160,7 +160,6 @@ def on_connect(client, userdata, flags, rc):
     Adding subscriptions in on_connect() means that they'll be re-subscribed
     for lost/re-connections to MQTT server.
     """
-
     # print("Connected with result code {}".format(rc))
 
     subtopic_list = list(known_core_metadata_types.keys())
@@ -179,7 +178,6 @@ def on_connect(client, userdata, flags, rc):
 
 def _guessImageMime(magic):
     """Peeks at leading bytes in binary object to identify image format."""
-
     if magic.startswith(b"\xff\xd8"):
         return "image/jpeg"
     elif magic.startswith(b"\x89PNG\r\n\x1a\r"):
@@ -198,9 +196,7 @@ def _send_and_store_playing_metadata(metadata_name, message):
     Applies a naming convention of prepending string 'playing_' to metadata
     name in socketio sent event. Of course the same naming convention is used
     on receiving client event.
-
     """
-
     # print("{} update".format(metadata_name))
     msg = {"data": message.payload.decode("utf8")}
     emitted_metadata_name = "playing_{}".format(metadata_name)
@@ -210,13 +206,13 @@ def _send_and_store_playing_metadata(metadata_name, message):
 
 def _send_play_event(metadata_name):
     """Forms play event message and sends to browser client using socket.io."""
-
     print("{}".format(metadata_name))
     socketio.emit(metadata_name, metadata_name)
 
 
 # https://stackoverflow.com/a/1970037
 def make_interpolator(left_min, left_max, right_min, right_max):
+    """Create factory for an interpolator function."""
     # Figure out how 'wide' each range is
     leftSpan = left_max - left_min
     rightSpan = right_max - right_min
@@ -239,7 +235,6 @@ volume_scaler = make_interpolator(-30.0, 0, -0.5, 100.0)
 
 def _send_volume_event(metadata_name, message):
     """Forms volume event message and sends to browser client using socket.io."""
-
     print("{}".format(metadata_name))
     (airplay_volume, volume, lowest_volume, highest_volume) = message.payload.decode(
         "ascii"
@@ -256,8 +251,7 @@ def _send_volume_event(metadata_name, message):
 
 
 def on_message(client, userdata, message):
-    """Callback for when a subscribed-to MQTT message is received."""
-
+    """Implement callback for when a subscribed-to MQTT message is received."""
     if message.topic != _form_subtopic_topic("cover"):
         print(message.topic, message.payload)
 
