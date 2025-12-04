@@ -110,7 +110,7 @@ def flaschenSendThumbnailImage(client, image):
             client.set(x, y, (color[0], color[1], color[2]))
     client.send()
 
-def on_connect(client, userdata, flags, rc):
+def on_connect(client, userdata, flags, rc, properties=None):
     """For when MQTT client receives a CONNACK response from the server.
 
     Adding subscriptions in on_connect() means that they'll be re-subscribed
@@ -129,7 +129,7 @@ def on_connect(client, userdata, flags, rc):
         print(msg_id)
 
 
-def on_message(client, userdata, message):
+def on_message(client, userdata, message, properties=None):
     """Callback for when a subscribed-to MQTT message is received."""
 
     if message.topic != _form_subtopic_topic("cover"):
@@ -140,7 +140,11 @@ def on_message(client, userdata, message):
     # cover art
     if message.topic == _form_subtopic_topic("cover"):
         if message.payload:
-            image = createMatrixImage(io.BytesIO(message.payload))
+            try:
+                image = createMatrixImage(io.BytesIO(message.payload))
+            except Exception as e:
+                print(f"Invalid cover art, using default: {e}")
+                image = DEFAULT_IMAGE
         else:
             image = DEFAULT_IMAGE
         msg = {"data": image}
@@ -158,7 +162,7 @@ def createMatrixImage(fileobj):
         if hasattr(fileobj, 'name'):
             print(fileobj.name, end=' ')
         print(image.format, f"{image.size} x {image.mode}")
-        image.thumbnail(size, Image.ANTIALIAS)
+        image.thumbnail(size, Image.LANCZOS)
         background = Image.new('RGBA', size, (0, 0, 0, 0))
         background.paste(image, (int((size[0] - image.size[0]) / 2), int((size[1] - image.size[1]) / 2)))
         return background
@@ -174,7 +178,7 @@ flaschen_client = flaschen.Flaschen(FLASCHEN_SERVER,
                                     FLASCHEN_ROWS)
 
 # Configure MQTT broker connection
-mqttc = mqtt.Client()
+mqttc = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
 
 # register callbacks
 mqttc.on_connect = on_connect
