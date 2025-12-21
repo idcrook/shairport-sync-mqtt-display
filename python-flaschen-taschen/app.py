@@ -194,7 +194,7 @@ def clear_display():
     flaschenSendThumbnailImage(flaschen_client, image)
 
 def on_message(client, userdata, message, properties=None):
-    global volume_clear_timer
+    global volume_clear_timer, display_clear_timer
     topic = message.topic
     payload = message.payload
 
