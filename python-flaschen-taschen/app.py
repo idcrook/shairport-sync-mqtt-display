@@ -27,6 +27,10 @@ volume_clear_timer = None
 VOLUME_BAR_TIMEOUT = 2  # seconds
 VOLUME_BAR = True
 
+# Global timer for clearing the display after inactivity
+display_clear_timer = None
+DISPLAY_CLEAR_TIMEOUT = 20 # seconds
+
 # determine path to this script
 mypath = Path(__file__).resolve().parent
 
@@ -184,6 +188,11 @@ def clear_volume_bar():
     if img:
         flaschenSendThumbnailImage(flaschen_client, img)
 
+def clear_display():
+    """Clear display after extended inactivity."""
+    image = Image.new('RGBA', FLASCHEN_SIZE, (0, 0, 0, 0))
+    flaschenSendThumbnailImage(flaschen_client, image)
+
 def on_message(client, userdata, message, properties=None):
     global volume_clear_timer
     topic = message.topic
@@ -202,10 +211,15 @@ def on_message(client, userdata, message, properties=None):
         SAVED_INFO["cover_art"] = {"data": image}
         flaschenSendThumbnailImage(flaschen_client, image)
 
+        if display_clear_timer is not None:
+            display_clear_timer.cancel()
+
     # --- clear matrix when inactive ---
     elif topic == _form_subtopic_topic("active_end"):
-        image = Image.new('RGBA', FLASCHEN_SIZE, (0, 0, 0, 0))
-        flaschenSendThumbnailImage(flaschen_client, image)
+        if display_clear_timer is not None:
+            display_clear_timer.cancel()
+        display_clear_timer = threading.Timer(DISPLAY_CLEAR_TIMEOUT, clear_display)
+        display_clear_timer.start()
 
     # --- volume overlay ---
     elif topic == _form_subtopic_topic("volume") and VOLUME_BAR:
