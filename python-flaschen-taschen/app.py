@@ -25,7 +25,7 @@ import threading
 # Global timer to track volume bar disappearance
 volume_clear_timer = None
 VOLUME_BAR_TIMEOUT = 2  # seconds
-
+VOLUME_BAR = True
 
 # determine path to this script
 mypath = Path(__file__).resolve().parent
@@ -139,9 +139,8 @@ def on_connect(client, userdata, flags, rc, properties=None):
 
 def overlay_volume_bar(image, volume: int):
     """
-    Draw a green volume bar with a grey skeleton.
+    Draw a white volume bar with a grey skeleton.
     Fixed height, rounded corners, 3-pixel padding.
-    Handles small widths properly to avoid weird corners.
     """
     draw = ImageDraw.Draw(image)
     width, height = image.size
@@ -164,11 +163,11 @@ def overlay_volume_bar(image, volume: int):
         fill=(32, 32, 32, 255)
     )
 
-    # Green bar width
+    # White bar width
     bar_width = int((width - 2 * padding) * (volume / 100))
     if bar_width > 0:
         bar_right = left + bar_width
-        # Compute corner radius safely
+        # Border radius
         corner_radius = min(default_corner_radius, bar_height // 2, bar_width // 2)
         draw.rounded_rectangle(
             [left, top, bar_right, bottom],
@@ -209,7 +208,7 @@ def on_message(client, userdata, message, properties=None):
         flaschenSendThumbnailImage(flaschen_client, image)
 
     # --- volume overlay ---
-    elif topic == _form_subtopic_topic("volume"):
+    elif topic == _form_subtopic_topic("volume") and VOLUME_BAR:
         try:
             payload_str = payload.decode("utf-8")
             channels = [float(x) for x in payload_str.split(",")]
@@ -221,7 +220,7 @@ def on_message(client, userdata, message, properties=None):
         min_db, max_db = -30.0, 0.0
         volume_percent = max(0, min(100, int((volume_db - min_db) / (max_db - min_db) * 100)))
 
-        # Overlay green bar
+        # Overlay volume bar
         img = SAVED_INFO.get("cover_art", {}).get("data")
         if img:
             img_with_bar = overlay_volume_bar(img.copy(), volume_percent)
