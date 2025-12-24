@@ -14,10 +14,22 @@ import time
 
 import paho.mqtt.client as mqtt
 from yaml import safe_load
-from PIL import Image  #, ImageOps
+from PIL import Image, ImageDraw  #, ImageOps
 
 # https://github.com/hzeller/flaschen-taschen/raw/master/api/python/flaschen.py
 import flaschen
+
+
+import threading
+
+# Global timer to track volume bar disappearance
+volume_clear_timer = None
+VOLUME_BAR_TIMEOUT = 2  # seconds
+VOLUME_BAR = True
+
+# Global timer for clearing the display after inactivity
+display_clear_timer = None
+DISPLAY_CLEAR_TIMEOUT = 20 # seconds
 
 # determine path to this script
 mypath = Path(__file__).resolve().parent
@@ -129,32 +141,111 @@ def on_connect(client, userdata, flags, rc, properties=None):
         print(msg_id)
 
 
+def overlay_volume_bar(image, volume: int):
+    """
+    Draw a white volume bar with a grey skeleton.
+    Fixed height, rounded corners, 3-pixel padding.
+    """
+    draw = ImageDraw.Draw(image)
+    width, height = image.size
+
+    # Configuration
+    bar_height = 3
+    default_corner_radius = 5
+    padding = 3
+
+    # Bar coordinates
+    top = height - padding - bar_height
+    bottom = height - padding - 1
+    left = padding
+    right = width - padding
+
+    # Draw grey skeleton (full width)
+    draw.rounded_rectangle(
+        [left, top, right, bottom],
+        radius=default_corner_radius,
+        fill=(32, 32, 32, 255)
+    )
+
+    # White bar width
+    bar_width = int((width - 2 * padding) * (volume / 100))
+    if bar_width > 0:
+        bar_right = left + bar_width
+        # Border radius
+        corner_radius = min(default_corner_radius, bar_height // 2, bar_width // 2)
+        draw.rounded_rectangle(
+            [left, top, bar_right, bottom],
+            radius=corner_radius,
+            fill=(238, 238, 238, 255)
+        )
+
+    return image
+
+
+def clear_volume_bar():
+    """Remove the volume bar by re-sending the original cover art."""
+    img = SAVED_INFO.get("cover_art", {}).get("data")
+    if img:
+        flaschenSendThumbnailImage(flaschen_client, img)
+
+def clear_display():
+    """Clear display after extended inactivity."""
+    image = Image.new('RGBA', FLASCHEN_SIZE, (0, 0, 0, 0))
+    flaschenSendThumbnailImage(flaschen_client, image)
+
 def on_message(client, userdata, message, properties=None):
-    """Callback for when a subscribed-to MQTT message is received."""
+    global volume_clear_timer, display_clear_timer
+    topic = message.topic
+    payload = message.payload
 
-    if message.topic != _form_subtopic_topic("cover"):
-        print(message.topic, message.payload)
-    else:
-        print(message.topic, len(message.payload))
-
-    # cover art
-    if message.topic == _form_subtopic_topic("cover"):
-        if message.payload:
+    # --- cover art ---
+    if topic == _form_subtopic_topic("cover"):
+        if payload:
             try:
-                image = createMatrixImage(io.BytesIO(message.payload))
+                image = createMatrixImage(io.BytesIO(payload))
             except Exception as e:
                 print(f"Invalid cover art, using default: {e}")
                 image = DEFAULT_IMAGE
         else:
             image = DEFAULT_IMAGE
-        msg = {"data": image}
-        SAVED_INFO["cover_art"] = msg
+        SAVED_INFO["cover_art"] = {"data": image}
         flaschenSendThumbnailImage(flaschen_client, image)
 
-    # clear matrix when inactive
-    if message.topic == _form_subtopic_topic("active_end"):
-        image = Image.new('RGBA', FLASCHEN_SIZE, (0, 0, 0, 0))
-        flaschenSendThumbnailImage(flaschen_client, image)
+        if display_clear_timer is not None:
+            display_clear_timer.cancel()
+
+    # --- clear matrix when inactive ---
+    elif topic == _form_subtopic_topic("active_end"):
+        if display_clear_timer is not None:
+            display_clear_timer.cancel()
+        display_clear_timer = threading.Timer(DISPLAY_CLEAR_TIMEOUT, clear_display)
+        display_clear_timer.start()
+
+    # --- volume overlay ---
+    elif topic == _form_subtopic_topic("volume") and VOLUME_BAR:
+        try:
+            payload_str = payload.decode("utf-8")
+            channels = [float(x) for x in payload_str.split(",")]
+        except ValueError:
+            print("Invalid volume payload:", payload)
+            return
+
+        volume_db = channels[0]
+        min_db, max_db = -30.0, 0.0
+        volume_percent = max(0, min(100, int((volume_db - min_db) / (max_db - min_db) * 100)))
+
+        # Overlay volume bar
+        img = SAVED_INFO.get("cover_art", {}).get("data")
+        if img:
+            img_with_bar = overlay_volume_bar(img.copy(), volume_percent)
+            flaschenSendThumbnailImage(flaschen_client, img_with_bar)
+
+        # --- Reset/Start timer to clear volume bar ---
+        if volume_clear_timer is not None:
+            volume_clear_timer.cancel()
+        volume_clear_timer = threading.Timer(VOLUME_BAR_TIMEOUT, clear_volume_bar)
+        volume_clear_timer.start()
+
 
 def createMatrixImage(fileobj):
     with Image.open(fileobj) as image:
