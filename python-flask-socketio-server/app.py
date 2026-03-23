@@ -5,6 +5,13 @@
 # to run:
 #     python3 app.py
 
+# Use gevent to allow websockets connection upgrade in socket.io
+from gevent import monkey
+# standard library patch for co-routine friendliness
+# CRITICAL: Must be called before importing Flask, SocketIO, or any other library
+# that imports socket, ssl, threading, or time.
+monkey.patch_all()
+
 import base64
 from pathlib import Path
 import os
@@ -46,9 +53,11 @@ print(TOPIC_ROOT)
 # this variable will keep the most recent track info pieces sent to socketio
 SAVED_INFO = {}
 
+socketio = SocketIO(async_mode='gevent')
+
 app = Flask(__name__)
 app.config["SECRET_KEY"] = WEBSERVER_CONF.get("secret_key", "secret!")
-socketio = SocketIO(app)
+socketio.init_app(app)
 
 known_play_metadata_types = {
     "songalbum": "songalbum",
@@ -154,7 +163,7 @@ def _generate_remote_command(command):
         raise ValueError("Unknown remote command: {}".format(command))
 
 
-def on_connect(client, userdata, flags, rc):
+def on_connect(client, userdata, flags, reason_code, properties):
     """For when MQTT client receives a CONNACK response from the server.
 
     Adding subscriptions in on_connect() means that they'll be re-subscribed
@@ -294,7 +303,7 @@ def on_message(client, userdata, message):
 
 
 # Configure MQTT broker connection
-mqttc = mqtt.Client()
+mqttc = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
 
 # register callbacks
 mqttc.on_connect = on_connect
