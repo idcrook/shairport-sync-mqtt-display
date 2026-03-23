@@ -477,4 +477,6 @@ if __name__ == "__main__":
     web_debug = WEBSERVER_CONF["debug"]
     print("Starting webserver")
     print("   http://{}:{}".format(web_host, web_port))
-    socketio.run(app, host=web_host, port=web_port, debug=web_debug)
+    socketio.run(
+        app, host=web_host, port=web_port, debug=web_debug, allow_unsafe_werkzeug=True
+    )

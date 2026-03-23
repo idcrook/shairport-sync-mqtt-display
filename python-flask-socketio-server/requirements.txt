@@ -1,4 +1,4 @@
-flask<3
-Flask-SocketIO==5.1.2
+flask>=3.0.0
+Flask-SocketIO>=5.3.6
 paho-mqtt
 pyyaml
