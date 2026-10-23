@@ -486,4 +486,6 @@ if __name__ == "__main__":
     web_debug = WEBSERVER_CONF["debug"]
     print("Starting webserver")
     print("   http://{}:{}".format(web_host, web_port))
+    # spurious error caused by debug=True
+    #     in after_fork_in_child  - assert len(active) == 1
     socketio.run(app, host=web_host, port=web_port, debug=web_debug)
